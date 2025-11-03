@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "640403837473",
+    "project_id": "prm-g3",
+    "storage_bucket": "prm-g3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:640403837473:android:0caa0f7c1a40714f7dc960",
+        "android_client_info": {
+          "package_name": "com.example.prm_g3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCoUz2wVdHuBnbmnZS86bhmGkIBU4vF1G0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
