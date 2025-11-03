@@ -1,12 +1,16 @@
-package com.example.prm_g3;
+package com.example.prm_g3.adapters;
 
 import android.content.Context;
-import android.view.*;
-import android.widget.*;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
 import com.example.prm_g3.R;
-import com.example.prm_g3.Entity.Recipe;
+import com.example.prm_g3.models.Recipe;
 import java.util.List;
 
 public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder> {
@@ -28,12 +32,14 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Recipe r = recipes.get(position);
-        holder.tvRecipeTitle.setText(r.title);
-        holder.tvRating.setText("⭐ " + r.rating);
-        holder.tvInfo.setText("⏱ " + r.cook_time + " phút  •  " + r.difficulty);
+        holder.tvTitle.setText(r.title);
+        holder.tvDescription.setText(r.description);
+        holder.tvInfo.setText("⏱ " + r.cook_time + " phút • " + r.difficulty);
 
-        // Tạm thời ảnh tĩnh, có thể sau này load bằng Glide/Picasso
-        holder.imgRecipe.setImageResource(R.drawable.pho_bo);
+        Glide.with(context)
+                .load(r.image_url)
+                .placeholder(R.drawable.ic_home)
+                .into(holder.imgRecipe);
     }
 
     @Override
@@ -43,14 +49,16 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgRecipe;
-        TextView tvRecipeTitle, tvRating, tvInfo;
+        TextView tvTitle, tvDescription, tvInfo;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             imgRecipe = itemView.findViewById(R.id.imgRecipe);
-            tvRecipeTitle = itemView.findViewById(R.id.tvRecipeTitle);
-            tvRating = itemView.findViewById(R.id.tvRating);
+            tvTitle = itemView.findViewById(R.id.tvTitle);
+            tvDescription = itemView.findViewById(R.id.tvDescription);
             tvInfo = itemView.findViewById(R.id.tvInfo);
         }
     }
 }
+
 
