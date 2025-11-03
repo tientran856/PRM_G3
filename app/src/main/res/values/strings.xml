@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">PRM_G3</string>
+    <string name="cooking_guide">🍳 Cooking Guide</string>
+    <string name="good_morning_chef">Chào buổi sáng, Chef!</string>
+    <string name="search_hint">Tìm công thức, nguyên liệu...</string>
+    <string name="featured_today">🔥 Nổi bật hôm nay</string>
+    <string name="see_all">Xem tất cả</string>
+    <string name="home">Trang chủ</string>
+    <string name="favorites">Yêu thích</string>
+    <string name="add">Thêm</string>
+    <string name="notifications">Thông báo</string>
+    <string name="profile">Cá nhân</string>
 </resources>
