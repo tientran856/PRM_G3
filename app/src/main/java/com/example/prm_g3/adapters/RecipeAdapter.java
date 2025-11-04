@@ -1,6 +1,7 @@
 package com.example.prm_g3.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.prm_g3.R;
+import com.example.prm_g3.RecipeDetailActivity;
 import com.example.prm_g3.models.Recipe;
 import java.util.List;
 
@@ -30,19 +32,6 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Recipe r = recipes.get(position);
-        holder.tvTitle.setText(r.title);
-        holder.tvDescription.setText(r.description);
-        holder.tvInfo.setText("⏱ " + r.cook_time + " phút • " + r.difficulty);
-
-        Glide.with(context)
-                .load(r.image_url)
-                .placeholder(R.drawable.ic_home)
-                .into(holder.imgRecipe);
-    }
-
-    @Override
     public int getItemCount() {
         return recipes.size();
     }
@@ -59,6 +48,27 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder
             tvInfo = itemView.findViewById(R.id.tvInfo);
         }
     }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Recipe r = recipes.get(position);
+        holder.tvTitle.setText(r.title);
+        holder.tvDescription.setText(r.description);
+        holder.tvInfo.setText("⏱ " + r.cook_time + " phút • " + r.difficulty);
+
+        Glide.with(context)
+                .load(r.image_url)
+                .placeholder(R.drawable.ic_home)
+                .into(holder.imgRecipe);
+
+        // 👇 Khi click, mở RecipeDetailActivity
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, RecipeDetailActivity.class);
+            intent.putExtra("recipeId", "recipe_00" + (position + 1)); // id từ Firebase
+            context.startActivity(intent);
+        });
+    }
+
 }
 
 
