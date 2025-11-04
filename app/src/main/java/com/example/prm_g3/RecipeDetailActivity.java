@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -37,6 +38,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
     private LinearLayout containerIngredients, containerSteps;
     private RecyclerView recyclerViewComments;
     private Button btnAddComment;
+    private ImageButton btnBack;
 
     private DatabaseReference recipeRef, commentsRef;
     private String recipeId;
@@ -48,6 +50,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_detail);
 
+        // Setup views
+        btnBack = findViewById(R.id.btnBack);
         imgRecipe = findViewById(R.id.imgRecipe);
         tvTitle = findViewById(R.id.tvTitle);
         tvDescription = findViewById(R.id.tvDescription);
@@ -57,6 +61,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
         recyclerViewComments = findViewById(R.id.recyclerViewComments);
         btnAddComment = findViewById(R.id.btnAddComment);
         tvNoComments = findViewById(R.id.tvNoComments);
+
+        // Setup back button click listener
+        btnBack.setOnClickListener(v -> finish());
 
         recipeId = getIntent().getStringExtra("recipeId");
         recipeRef = FirebaseDatabase.getInstance().getReference("recipes").child(recipeId);
