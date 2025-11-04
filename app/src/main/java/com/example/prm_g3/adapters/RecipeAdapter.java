@@ -38,14 +38,15 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgRecipe;
-        TextView tvTitle, tvDescription, tvInfo;
+        TextView tvTitle, tvTime, tvDifficulty, tvRating;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             imgRecipe = itemView.findViewById(R.id.imgRecipe);
             tvTitle = itemView.findViewById(R.id.tvTitle);
-            tvDescription = itemView.findViewById(R.id.tvDescription);
-            tvInfo = itemView.findViewById(R.id.tvInfo);
+            tvTime = itemView.findViewById(R.id.tvTime);
+            tvDifficulty = itemView.findViewById(R.id.tvDifficulty);
+            tvRating = itemView.findViewById(R.id.tvRating);
         }
     }
 
@@ -53,8 +54,23 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Recipe r = recipes.get(position);
         holder.tvTitle.setText(r.title);
-        holder.tvDescription.setText(r.description);
-        holder.tvInfo.setText("⏱ " + r.cook_time + " phút • " + r.difficulty);
+
+        // Format time
+        int totalTime = r.prep_time + r.cook_time;
+        if (totalTime >= 60) {
+            int hours = totalTime / 60;
+            int minutes = totalTime % 60;
+            if (minutes > 0) {
+                holder.tvTime.setText(hours + " giờ " + minutes + " phút");
+            } else {
+                holder.tvTime.setText(hours + " giờ");
+            }
+        } else {
+            holder.tvTime.setText(totalTime + " phút");
+        }
+
+        holder.tvDifficulty.setText(r.difficulty);
+        holder.tvRating.setText(String.format("%.1f", r.rating));
 
         Glide.with(context)
                 .load(r.image_url)
@@ -70,5 +86,3 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder
     }
 
 }
-
-

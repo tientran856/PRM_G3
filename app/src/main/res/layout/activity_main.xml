@@ -1,178 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/rootLayout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F8F8F8"
-    tools:context=".MainActivity">
+    xmlns:tools="http://schemas.android.com/tools" android:id="@+id/rootLayout" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#F8F8F8" tools:context=".MainActivity">
 
-    <!-- AppBarLayout cho phần tiêu đề + danh mục -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#0D0D1A"
-        android:fitsSystemWindows="true"
-        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
+    <!-- Header cố định -->
+    <LinearLayout android:id="@+id/headerLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="#0D0D1A" android:elevation="4dp" android:paddingTop="?attr/actionBarSize">
 
         <!-- Header -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:paddingTop="?attr/actionBarSize">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp" android:background="#0D0D1A">
 
-            <TextView
-                android:id="@+id/tvAppTitle"
-                android:text="🍳 Cooking Guide"
-                android:textColor="#FFFFFF"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+            <LinearLayout android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/tvGreeting"
-                android:text="Chào buổi sáng, Chef!"
-                android:textColor="#DDDDDD"
-                android:layout_marginTop="4dp"
-                android:textSize="14sp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_chef_hat" android:layout_marginEnd="8dp" />
+
+                <TextView android:id="@+id/tvAppTitle" android:text="Cooking Guide" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <TextView android:id="@+id/tvGreeting" android:text="Chào buổi sáng, Chef!" android:textColor="#DDDDDD" android:layout_marginTop="4dp" android:textSize="14sp" android:layout_width="match_parent" android:layout_height="wrap_content" />
 
             <!-- Thanh tìm kiếm -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal"
-                android:background="@drawable/search_bg"
-                android:gravity="center_vertical"
-                android:paddingHorizontal="12dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="12dp" android:orientation="horizontal" android:background="@drawable/search_bg" android:gravity="center_vertical" android:paddingHorizontal="12dp">
 
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_search"
-                    app:tint="#555" />
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_search" app:tint="#555" />
 
-                <EditText
-                    android:id="@+id/edtSearch"
-                    android:hint="Tìm công thức, nguyên liệu..."
-                    android:background="@null"
-                    android:layout_marginStart="8dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:textColor="#000"
-                    android:inputType="text" />
+                <EditText android:id="@+id/edtSearch" android:hint="Tìm công thức, nguyên liệu..." android:background="@null" android:layout_marginStart="8dp" android:layout_width="match_parent" android:layout_height="match_parent" android:textColor="#000" android:inputType="text" />
             </LinearLayout>
         </LinearLayout>
 
         <!-- Thanh danh mục cố định -->
-        <HorizontalScrollView
-            android:id="@+id/categoryBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#FFFFFF"
-            android:paddingVertical="8dp"
-            android:scrollbars="none"
-            app:layout_scrollFlags="enterAlways">
+        <HorizontalScrollView android:id="@+id/categoryBar" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#FFFFFF" android:paddingVertical="8dp" android:scrollbars="none">
 
-            <LinearLayout
-                android:id="@+id/categoryContainer"
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="12dp">
+            <LinearLayout android:id="@+id/categoryContainer" android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingHorizontal="12dp">
 
-                <Button
-                    android:text="Món chính"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_marginEnd="8dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                <TextView android:text="Món chính" android:background="@drawable/category_button_bg" android:textColor="#333333" android:textSize="13sp" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:layout_marginEnd="8dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" />
 
-                <Button
-                    android:text="Món tráng miệng"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_marginEnd="8dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                <TextView android:text="Món tráng miệng" android:background="@drawable/category_button_bg" android:textColor="#333333" android:textSize="13sp" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:layout_marginEnd="8dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" />
 
-                <Button
-                    android:text="Món ăn nhanh"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_marginEnd="8dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                <TextView android:text="Món ăn nhanh" android:background="@drawable/category_button_bg" android:textColor="#333333" android:textSize="13sp" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:layout_marginEnd="8dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" />
             </LinearLayout>
         </HorizontalScrollView>
-    </com.google.android.material.appbar.AppBarLayout>
+    </LinearLayout>
 
     <!-- Nội dung cuộn -->
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/nestedScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:padding="12dp">
+    <androidx.core.widget.NestedScrollView android:id="@+id/nestedScrollView" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_below="@id/headerLayout" android:layout_above="@id/bottomNavigation" android:background="#F8F8F8" android:padding="12dp">
 
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="80dp">
+        <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="80dp" android:background="#F8F8F8">
 
             <!-- Tiêu đề Nổi bật -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp">
+            <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="6dp">
 
-                <TextView
-                    android:id="@+id/tvFeaturedTitle"
-                    android:text="🔥 Nổi bật hôm nay"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:textColor="#111"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_alignParentStart="true" android:layout_centerVertical="true">
 
-                <TextView
-                    android:id="@+id/tvSeeAll"
-                    android:text="Xem tất cả"
-                    android:textSize="14sp"
-                    android:textColor="#0066CC"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    <TextView android:id="@+id/tvFeaturedTitle" android:text="Nổi bật hôm nay" android:textStyle="bold" android:textSize="18sp" android:textColor="#111111" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+
+                    <ImageView android:layout_width="14dp" android:layout_height="14dp" android:src="@android:drawable/arrow_up_float" android:tint="#111111" android:layout_marginStart="6dp" />
+                </LinearLayout>
+
+                <TextView android:id="@+id/tvSeeAll" android:text="Xem tất cả" android:textSize="14sp" android:textColor="#111111" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:layout_width="wrap_content" android:layout_height="wrap_content" />
             </RelativeLayout>
 
-            <!-- Danh sách công thức -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvRecipes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+            <!-- Danh sách công thức nổi bật -->
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvRecipes" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" />
+
+            <!-- Tiêu đề Công thức phổ biến -->
+            <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:layout_marginBottom="6dp">
+
+                <TextView android:id="@+id/tvPopularTitle" android:text="Công thức phổ biến" android:textStyle="bold" android:textSize="18sp" android:textColor="#111111" android:layout_alignParentStart="true" android:layout_centerVertical="true" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            </RelativeLayout>
+
+            <!-- Grid công thức phổ biến -->
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvPopularRecipes" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
     <!-- Thanh điều hướng dưới -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="#FFFFFF"
-        app:menu="@menu/bottom_nav_menu"
-        app:itemIconTint="@color/nav_selector"
-        app:itemTextColor="@color/nav_selector"
-        app:labelVisibilityMode="labeled"
-        android:elevation="8dp" />
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottomNavigation" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:background="#FFFFFF" app:menu="@menu/bottom_nav_menu" app:itemIconTint="@color/nav_selector" app:itemTextColor="@color/nav_selector" app:labelVisibilityMode="labeled" android:elevation="8dp" />
+</RelativeLayout>
