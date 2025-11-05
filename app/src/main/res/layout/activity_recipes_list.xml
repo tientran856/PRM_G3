@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#FFFFFF">
+
+    <!-- Header -->
+    <LinearLayout android:id="@+id/headerLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical" android:background="#FFFFFF" android:elevation="2dp">
+
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Công thức" android:textSize="24sp" android:textStyle="bold" android:textColor="#111111" />
+
+        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnCreateNew" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tạo mới" android:textColor="#FFFFFF" android:background="#000000" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:textSize="14sp" android:drawableStart="@drawable/ic_add" android:drawablePadding="6dp" android:drawableTint="#FFFFFF" app:drawableStartCompat="@drawable/ic_add" />
+    </LinearLayout>
+
+    <!-- Search and Filter Section -->
+    <LinearLayout android:id="@+id/searchLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_below="@id/headerLayout" android:orientation="horizontal" android:paddingHorizontal="16dp" android:paddingBottom="12dp" android:gravity="center_vertical">
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1" android:orientation="horizontal" android:background="@drawable/search_bg" android:gravity="center_vertical" android:paddingHorizontal="12dp">
+
+            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_search" app:tint="#666666" />
+
+            <EditText android:id="@+id/edtSearch" android:layout_width="match_parent" android:layout_height="match_parent" android:hint="Tìm công thức..." android:background="@null" android:layout_marginStart="8dp" android:textColor="#000000" android:textColorHint="#999999" android:inputType="text" android:imeOptions="actionSearch" />
+        </LinearLayout>
+
+        <ImageView android:id="@+id/btnFilter" android:layout_width="44dp" android:layout_height="44dp" android:layout_marginStart="8dp" android:src="@android:drawable/ic_menu_sort_by_size" android:background="@drawable/category_button_bg" android:padding="10dp" android:contentDescription="Filter" />
+    </LinearLayout>
+
+    <!-- RecyclerView for Recipes Grid -->
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvRecipes" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_below="@id/searchLayout" android:layout_above="@id/bottomNavigation" android:padding="8dp" android:clipToPadding="false" />
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottomNavigation" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:background="#FFFFFF" android:elevation="8dp" app:menu="@menu/bottom_nav_menu" app:itemIconTint="@color/nav_selector" app:itemTextColor="@color/nav_selector" app:labelVisibilityMode="labeled" />
+
+</RelativeLayout>

@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.EditText;
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private RecipeGridAdapter popularAdapter;
     private List<Recipe> recipeList;
     private List<Recipe> popularRecipeList;
+    private List<String> popularRecipeIds;
     private EditText edtSearch;
     private DatabaseReference recipesRef;
 
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         edtSearch = findViewById(R.id.edtSearch);
         recipeList = new ArrayList<>();
         popularRecipeList = new ArrayList<>();
+        popularRecipeIds = new ArrayList<>();
 
         // Featured recipes - Linear layout
         adapter = new RecipeAdapter(this, recipeList);
@@ -47,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         rvRecipes.setAdapter(adapter);
 
         // Popular recipes - Grid layout 2 columns
-        popularAdapter = new RecipeGridAdapter(this, popularRecipeList);
+        popularAdapter = new RecipeGridAdapter(this, popularRecipeList, popularRecipeIds);
         rvPopularRecipes.setLayoutManager(new GridLayoutManager(this, 2));
         rvPopularRecipes.setAdapter(popularAdapter);
 
@@ -66,12 +69,15 @@ public class MainActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 recipeList.clear();
                 popularRecipeList.clear();
+                popularRecipeIds.clear();
 
                 List<Recipe> allRecipes = new ArrayList<>();
+                List<String> allRecipeIds = new ArrayList<>();
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Recipe r = data.getValue(Recipe.class);
                     if (r != null) {
                         allRecipes.add(r);
+                        allRecipeIds.add(data.getKey());
                     }
                 }
 
@@ -80,16 +86,30 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // Featured recipes: top 3 highest rated
-                allRecipes.sort((a, b) -> Double.compare(b.rating, a.rating));
-                int featuredCount = Math.min(3, allRecipes.size());
-                recipeList.addAll(allRecipes.subList(0, featuredCount));
+                // Sort recipes with their IDs together
+                List<RecipeWithId> recipeWithIds = new ArrayList<>();
+                for (int i = 0; i < allRecipes.size(); i++) {
+                    recipeWithIds.add(new RecipeWithId(allRecipes.get(i), allRecipeIds.get(i)));
+                }
+                recipeWithIds.sort((a, b) -> Double.compare(b.recipe.rating, a.recipe.rating));
+
+                int featuredCount = Math.min(3, recipeWithIds.size());
+                for (int i = 0; i < featuredCount; i++) {
+                    recipeList.add(recipeWithIds.get(i).recipe);
+                }
 
                 // Popular recipes: all remaining recipes (or all if less than 3)
-                if (allRecipes.size() > featuredCount) {
-                    popularRecipeList.addAll(allRecipes.subList(featuredCount, allRecipes.size()));
+                if (recipeWithIds.size() > featuredCount) {
+                    for (int i = featuredCount; i < recipeWithIds.size(); i++) {
+                        popularRecipeList.add(recipeWithIds.get(i).recipe);
+                        popularRecipeIds.add(recipeWithIds.get(i).recipeId);
+                    }
                 } else {
                     // If we have less than 3 recipes, show all in popular
-                    popularRecipeList.addAll(allRecipes);
+                    for (RecipeWithId rwi : recipeWithIds) {
+                        popularRecipeList.add(rwi.recipe);
+                        popularRecipeIds.add(rwi.recipeId);
+                    }
                 }
 
                 adapter.notifyDataSetChanged();
@@ -127,7 +147,8 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Trang chủ", Toast.LENGTH_SHORT).show();
                 return true;
             } else if (id == R.id.nav_recipes) {
-                Toast.makeText(this, "Công thức", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, RecipesListActivity.class);
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_plan) {
                 Toast.makeText(this, "Kế hoạch", Toast.LENGTH_SHORT).show();
@@ -141,5 +162,16 @@ public class MainActivity extends AppCompatActivity {
             }
             return false;
         });
+    }
+
+    // Helper class to keep recipe and ID together during sorting
+    private static class RecipeWithId {
+        Recipe recipe;
+        String recipeId;
+
+        RecipeWithId(Recipe recipe, String recipeId) {
+            this.recipe = recipe;
+            this.recipeId = recipeId;
+        }
     }
 }

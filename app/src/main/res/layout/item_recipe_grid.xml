@@ -23,16 +23,14 @@
 
             <TextView android:id="@+id/tvTitle" android:text="Tên món ăn" android:textStyle="bold" android:textSize="16sp" android:textColor="#111111" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxLines="2" android:ellipsize="end" />
 
-            <LinearLayout android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:gravity="center_vertical">
+            <!-- Time and Rating on same line -->
+            <LinearLayout android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:gravity="center_vertical">
 
                 <ImageView android:layout_width="12dp" android:layout_height="12dp" android:src="@android:drawable/ic_menu_recent_history" android:tint="#666666" />
 
                 <TextView android:id="@+id/tvTime" android:text="45 phút" android:textSize="12sp" android:textColor="#888888" android:layout_marginStart="3dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-            </LinearLayout>
 
-            <LinearLayout android:orientation="horizontal" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:gravity="center_vertical">
-
-                <ImageView android:layout_width="12dp" android:layout_height="12dp" android:src="@android:drawable/star_big_on" android:tint="#FFD700" />
+                <ImageView android:layout_width="12dp" android:layout_height="12dp" android:src="@android:drawable/star_big_on" android:tint="#FFD700" android:layout_marginStart="8dp" />
 
                 <TextView android:id="@+id/tvRatingText" android:text="4.8" android:textSize="12sp" android:textColor="#888888" android:layout_marginStart="3dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
             </LinearLayout>

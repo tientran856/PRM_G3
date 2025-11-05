@@ -18,10 +18,12 @@ import java.util.List;
 public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.ViewHolder> {
     private Context context;
     private List<Recipe> recipes;
+    private List<String> recipeIds;
 
-    public RecipeGridAdapter(Context context, List<Recipe> recipes) {
+    public RecipeGridAdapter(Context context, List<Recipe> recipes, List<String> recipeIds) {
         this.context = context;
         this.recipes = recipes;
+        this.recipeIds = recipeIds;
     }
 
     @NonNull
@@ -81,7 +83,10 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
         // 👇 Khi click, mở RecipeDetailActivity
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, RecipeDetailActivity.class);
-            intent.putExtra("recipeId", "recipe_00" + (position + 1));
+            String recipeId = recipeIds != null && position < recipeIds.size()
+                    ? recipeIds.get(position)
+                    : "recipe_00" + (position + 1);
+            intent.putExtra("recipeId", recipeId);
             context.startActivity(intent);
         });
     }
