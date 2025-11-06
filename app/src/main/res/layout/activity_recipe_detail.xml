@@ -13,14 +13,45 @@
                 <ImageView android:id="@+id/imgRecipe" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:adjustViewBounds="true" android:background="@drawable/rounded_image_bg" />
 
                 <!-- Back Button -->
-                <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp" android:layout_alignParentStart="true" android:layout_alignParentTop="true" android:layout_margin="16dp" android:background="@drawable/bg_round_white" android:elevation="4dp" android:src="@android:drawable/ic_menu_revert" android:tint="#333333" />
+                <ImageButton
+                    android:id="@+id/btnBack"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_margin="16dp"
+                    android:background="@drawable/bg_circle_translucent"
+                    android:src="@drawable/ic_arrow_back_white"
+                    android:scaleType="center"
+                    android:contentDescription="Back" />
 
                 <!-- Favorite + Share -->
-                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_alignParentTop="true" android:layout_margin="16dp" android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_margin="16dp"
+                    android:orientation="horizontal">
 
-                    <ImageButton android:id="@+id/btnFavorite" android:layout_width="40dp" android:layout_height="40dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_round_white" android:elevation="4dp" android:src="@drawable/ic_heart" android:tint="#F44336" />
+                    <ImageButton
+                        android:id="@+id/btnFavorite"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_circle_translucent"
+                        android:src="@drawable/ic_heart_white"
+                        android:scaleType="center"
+                        android:contentDescription="Favorite" />
 
-                    <ImageButton android:id="@+id/btnShare" android:layout_width="40dp" android:layout_height="40dp" android:background="@drawable/bg_round_white" android:elevation="4dp" android:src="@android:drawable/ic_menu_share" android:tint="#333333" />
+                    <ImageButton
+                        android:id="@+id/btnShare"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_circle_translucent"
+                        android:src="@drawable/ic_share_white"
+                        android:scaleType="center"
+                        android:contentDescription="Share" />
                 </LinearLayout>
             </RelativeLayout>
 

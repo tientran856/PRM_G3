@@ -13,6 +13,7 @@
         <activity android:name=".RecipeDetailActivity" />
         <activity android:name=".RecipesListActivity" />
         <activity android:name=".MealPlanActivity" />
+        <activity android:name=".CreateRecipeActivity" />
 
     </application>
 

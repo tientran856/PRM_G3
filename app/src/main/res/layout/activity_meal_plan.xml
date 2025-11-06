@@ -10,7 +10,7 @@
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingHorizontal="16dp" android:paddingBottom="12dp">
 
-            <ImageButton android:id="@+id/btnPrevMonth" android:layout_width="40dp" android:layout_height="40dp" android:src="@android:drawable/ic_media_previous" android:background="?android:attr/selectableItemBackgroundBorderless" android:contentDescription="Tháng trước" />
+            <ImageButton android:id="@+id/btnPrevMonth" android:layout_width="40dp" android:layout_height="40dp" android:background="@android:color/transparent" android:src="@drawable/ic_arrow_left" android:contentDescription="Tuần trước" />
 
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center" android:layout_marginHorizontal="16dp">
 
@@ -19,7 +19,7 @@
                 <TextView android:id="@+id/tvMonthYear" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tháng 11, 2025" android:textSize="16sp" android:textStyle="bold" android:textColor="#111111" />
             </LinearLayout>
 
-            <ImageButton android:id="@+id/btnNextMonth" android:layout_width="40dp" android:layout_height="40dp" android:src="@android:drawable/ic_media_next" android:background="?android:attr/selectableItemBackgroundBorderless" android:contentDescription="Tháng sau" />
+            <ImageButton android:id="@+id/btnNextMonth" android:layout_width="40dp" android:layout_height="40dp" android:background="@android:color/transparent" android:src="@drawable/ic_arrow_right" android:contentDescription="Tuần sau" />
         </LinearLayout>
 
         <!-- Days of Week -->

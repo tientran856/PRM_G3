@@ -189,8 +189,8 @@ public class RecipesListActivity extends AppCompatActivity {
 
     private void setupCreateButton() {
         btnCreateNew.setOnClickListener(v -> {
-            // TODO: Navigate to create recipe activity
-            Toast.makeText(this, "Tạo công thức mới", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(RecipesListActivity.this, CreateRecipeActivity.class);
+            startActivity(intent);
         });
     }
 
