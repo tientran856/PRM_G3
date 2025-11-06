@@ -1,45 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#FFFFFF">
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#FFFFFF" tools:context=".RecipeDetailActivity">
 
     <androidx.core.widget.NestedScrollView android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-            <!-- Image Section with Overlay Buttons -->
+            <!-- Image Section -->
             <RelativeLayout android:layout_width="match_parent" android:layout_height="280dp">
 
-                <ImageView android:id="@+id/imgRecipe" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" />
+                <ImageView android:id="@+id/imgRecipe" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:adjustViewBounds="true" android:background="@drawable/rounded_image_bg" />
 
                 <!-- Back Button -->
-                <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp" android:layout_alignParentStart="true" android:layout_alignParentTop="true" android:layout_margin="16dp" android:background="@drawable/button_background" android:src="@android:drawable/ic_menu_revert" android:tint="#FFFFFF" android:contentDescription="Back" />
+                <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp" android:layout_alignParentStart="true" android:layout_alignParentTop="true" android:layout_margin="16dp" android:background="@drawable/bg_round_white" android:elevation="4dp" android:src="@android:drawable/ic_menu_revert" android:tint="#333333" />
 
-                <!-- Action Buttons -->
+                <!-- Favorite + Share -->
                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_alignParentTop="true" android:layout_margin="16dp" android:orientation="horizontal">
 
-                    <ImageButton android:id="@+id/btnFavorite" android:layout_width="40dp" android:layout_height="40dp" android:layout_marginEnd="8dp" android:background="@drawable/button_background" android:src="@android:drawable/btn_star_big_off" android:tint="#FFFFFF" android:contentDescription="Favorite" />
+                    <ImageButton android:id="@+id/btnFavorite" android:layout_width="40dp" android:layout_height="40dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_round_white" android:elevation="4dp" android:src="@drawable/ic_heart" android:tint="#F44336" />
 
-                    <ImageButton android:id="@+id/btnShare" android:layout_width="40dp" android:layout_height="40dp" android:background="@drawable/button_background" android:src="@android:drawable/ic_menu_share" android:tint="#FFFFFF" android:contentDescription="Share" />
+                    <ImageButton android:id="@+id/btnShare" android:layout_width="40dp" android:layout_height="40dp" android:background="@drawable/bg_round_white" android:elevation="4dp" android:src="@android:drawable/ic_menu_share" android:tint="#333333" />
                 </LinearLayout>
             </RelativeLayout>
 
-            <!-- Content Section -->
+            <!-- Content -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
 
-                <!-- Title -->
-                <TextView android:id="@+id/tvTitle" android:text="Phở bò Hà Nội" android:textSize="24sp" android:textStyle="bold" android:textColor="#111111" android:layout_width="match_parent" android:layout_height="wrap_content" />
+                <TextView android:id="@+id/tvTitle" android:text="Phở bò Hà Nội" android:textSize="22sp" android:textStyle="bold" android:textColor="#111111" android:layout_width="match_parent" android:layout_height="wrap_content" />
 
                 <!-- Rating -->
                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="horizontal" android:gravity="center_vertical">
 
-                    <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@android:drawable/star_big_on" android:tint="#FFD700" />
+                    <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@android:drawable/star_big_on" android:tint="#FFC107" />
 
-                    <TextView android:id="@+id/tvRating" android:text="4.8 (156 đánh giá)" android:textSize="14sp" android:textColor="#666666" android:layout_marginStart="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                    <TextView android:id="@+id/tvRating" android:text="4.8 (156 đánh giá)" android:textSize="14sp" android:textColor="#6B6B6B" android:layout_marginStart="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                 </LinearLayout>
 
-                <!-- Info Row -->
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:orientation="horizontal" android:gravity="center_vertical">
+                <!-- Info -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:orientation="horizontal" android:weightSum="3">
 
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical">
 
@@ -50,7 +49,7 @@
 
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical">
 
-                        <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@android:drawable/ic_menu_myplaces" android:tint="#666666" />
+                        <ImageView android:layout_width="16dp" android:layout_height="16dp" android:src="@drawable/ic_user" android:tint="#666666" />
 
                         <TextView android:id="@+id/tvServings" android:text="4 người" android:textSize="14sp" android:textColor="#666666" android:layout_marginStart="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                     </LinearLayout>
@@ -63,10 +62,9 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Description -->
                 <TextView android:id="@+id/tvDescription" android:text="Món phở bò truyền thống với nước dùng được ninh từ xương bò trong nhiều giờ" android:textSize="15sp" android:textColor="#333333" android:layout_marginTop="16dp" android:lineSpacingExtra="4dp" android:layout_width="match_parent" android:layout_height="wrap_content" />
 
-                <!-- Category Tags -->
+                <!-- Tags -->
                 <LinearLayout android:id="@+id/containerTags" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:orientation="horizontal">
 
                     <TextView android:text="Món Á" android:background="@drawable/tag_background" android:textColor="#666666" android:textSize="12sp" android:paddingHorizontal="12dp" android:paddingVertical="6dp" android:layout_marginEnd="8dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
@@ -76,7 +74,7 @@
                     <TextView android:text="Truyền thống" android:background="@drawable/tag_background" android:textColor="#666666" android:textSize="12sp" android:paddingHorizontal="12dp" android:paddingVertical="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                 </LinearLayout>
 
-                <!-- Tab Navigation -->
+                <!-- Tabs -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:orientation="horizontal" android:background="#F5F5F5" android:padding="4dp">
 
                     <TextView android:id="@+id/tabIngredients" android:text="Nguyên liệu" android:textSize="14sp" android:textStyle="bold" android:textColor="#111111" android:background="@drawable/tab_selected_background" android:paddingHorizontal="20dp" android:paddingVertical="12dp" android:gravity="center" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
@@ -86,31 +84,19 @@
                     <TextView android:id="@+id/tabComments" android:text="Bình luận" android:textSize="14sp" android:textColor="#666666" android:background="@drawable/tab_unselected_background" android:paddingHorizontal="20dp" android:paddingVertical="12dp" android:gravity="center" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
                 </LinearLayout>
 
-                <!-- Content Container -->
                 <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp">
 
-                    <!-- Ingredients Content -->
-                    <LinearLayout android:id="@+id/containerIngredients" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="visible">
+                    <LinearLayout android:id="@+id/containerIngredients" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="visible" />
 
-                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingVertical="12dp">
-
-                            <TextView android:text="Thịt bò" android:textSize="15sp" android:textColor="#111111" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
-
-                            <TextView android:text="500g" android:textSize="15sp" android:textColor="#666666" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Steps Content -->
                     <LinearLayout android:id="@+id/containerSteps" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone" />
 
-                    <!-- Comments Content -->
                     <LinearLayout android:id="@+id/containerComments" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
 
                         <!-- Review Input Section -->
                         <TextView android:text="Đánh giá của bạn" android:textSize="16sp" android:textStyle="bold" android:textColor="#111111" android:layout_marginBottom="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
 
                         <!-- Star Rating -->
-                        <LinearLayout android:id="@+id/ratingStarsContainer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:orientation="horizontal">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:orientation="horizontal">
                             <ImageButton android:id="@+id/star1" android:layout_width="32dp" android:layout_height="32dp" android:background="@null" android:src="@android:drawable/star_big_off" android:tint="#CCCCCC" android:padding="4dp" />
                             <ImageButton android:id="@+id/star2" android:layout_width="32dp" android:layout_height="32dp" android:background="@null" android:src="@android:drawable/star_big_off" android:tint="#CCCCCC" android:padding="4dp" />
                             <ImageButton android:id="@+id/star3" android:layout_width="32dp" android:layout_height="32dp" android:background="@null" android:src="@android:drawable/star_big_off" android:tint="#CCCCCC" android:padding="4dp" />
@@ -131,7 +117,4 @@
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <!-- Start Cooking Button -->
-    <Button android:id="@+id/btnStartCooking" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom" android:text="Bắt đầu nấu" android:textSize="16sp" android:textStyle="bold" android:textColor="#FFFFFF" android:background="#000000" android:paddingVertical="16dp" android:drawableStart="@android:drawable/ic_media_play" android:drawablePadding="8dp" android:gravity="center" android:elevation="8dp" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

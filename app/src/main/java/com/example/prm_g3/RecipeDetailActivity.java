@@ -32,7 +32,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
     private LinearLayout containerIngredients, containerSteps, containerComments, commentsList;
     private LinearLayout containerTags;
     private EditText edtComment;
-    private Button btnSubmitReview, btnStartCooking;
+    private Button btnSubmitReview;
     private ImageButton star1, star2, star3, star4, star5;
     private int selectedRating = 0;
 
@@ -78,7 +78,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
         containerTags = findViewById(R.id.containerTags);
         edtComment = findViewById(R.id.edtComment);
         btnSubmitReview = findViewById(R.id.btnSubmitReview);
-        btnStartCooking = findViewById(R.id.btnStartCooking);
         star1 = findViewById(R.id.star1);
         star2 = findViewById(R.id.star2);
         star3 = findViewById(R.id.star3);
@@ -134,11 +133,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
             Toast.makeText(this, "Đã gửi đánh giá", Toast.LENGTH_SHORT).show();
             edtComment.setText("");
             setRating(0);
-        });
-
-        // Start cooking button
-        btnStartCooking.setOnClickListener(v -> {
-            Toast.makeText(this, "Bắt đầu nấu!", Toast.LENGTH_SHORT).show();
         });
     }
 
