@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#FFFFFF">
 
     <!-- Header -->
-    <TextView android:id="@+id/headerTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Kế hoạch bữa ăn" android:textSize="24sp" android:textStyle="bold" android:textColor="#111111" android:gravity="center" android:padding="16dp" android:background="#FFFFFF" android:elevation="2dp" />
+    <TextView android:id="@+id/headerTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Kế hoạch bữa ăn" android:textSize="24sp" android:textStyle="bold" android:textColor="#111111" android:gravity="center" android:padding="16dp" android:paddingTop="64dp" android:background="#FFFFFF" android:elevation="2dp" />
 
     <!-- Date Selector -->
     <LinearLayout android:id="@+id/dateSelectorLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_below="@id/headerTitle" android:orientation="vertical" android:background="#FFFFFF" android:paddingVertical="12dp" android:elevation="2dp">

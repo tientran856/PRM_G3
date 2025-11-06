@@ -3,11 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#FFFFFF">
 
     <!-- Header -->
-    <LinearLayout android:id="@+id/headerLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="16dp" android:gravity="center_vertical" android:background="#FFFFFF" android:elevation="2dp">
+    <LinearLayout android:id="@+id/headerLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="16dp" android:paddingTop="80dp" android:gravity="center_vertical" android:background="#FFFFFF" android:elevation="2dp">
 
         <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Công thức" android:textSize="24sp" android:textStyle="bold" android:textColor="#111111" />
 
-        <androidx.appcompat.widget.AppCompatButton android:id="@+id/btnCreateNew" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tạo mới" android:textColor="#FFFFFF" android:background="#000000" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:textSize="14sp" android:drawableStart="@drawable/ic_add" android:drawablePadding="6dp" android:drawableTint="#FFFFFF" app:drawableStartCompat="@drawable/ic_add" />
+        <Button android:id="@+id/btnCreateNew" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+ Tạo mới" android:textColor="#FFFFFF" android:background="#000000" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:textSize="14sp" android:drawableStart="@drawable/ic_add" android:drawablePadding="6dp" android:drawableTint="#FFFFFF" android:gravity="center_vertical" />
     </LinearLayout>
 
     <!-- Search and Filter Section -->

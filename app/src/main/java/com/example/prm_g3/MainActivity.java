@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -36,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Set status bar to black
+        setStatusBarBlack();
 
         rvRecipes = findViewById(R.id.rvRecipes);
         rvPopularRecipes = findViewById(R.id.rvPopularRecipes);
@@ -174,5 +178,20 @@ public class MainActivity extends AppCompatActivity {
             this.recipe = recipe;
             this.recipeId = recipeId;
         }
+    }
+
+    private void setStatusBarBlack() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(0xFF000000);
+            int flags = getWindow().getDecorView().getSystemUiVisibility();
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            getWindow().getDecorView().setSystemUiVisibility(flags);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setStatusBarBlack();
     }
 }

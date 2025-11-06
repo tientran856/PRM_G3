@@ -43,11 +43,20 @@ public class CreateRecipeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_recipe);
 
-        initViews();
-        setupClickListeners();
-        setupDifficultySpinner();
+        try {
+            setContentView(R.layout.activity_create_recipe);
+
+            // Set status bar to black
+            setStatusBarBlack();
+            initViews();
+            setupClickListeners();
+            setupDifficultySpinner();
+        } catch (Exception e) {
+            android.util.Log.e("CreateRecipeActivity", "Error in onCreate: " + e.getMessage(), e);
+            Toast.makeText(this, "Lỗi khởi tạo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
     private void initViews() {
@@ -223,5 +232,20 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Lỗi lưu công thức: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void setStatusBarBlack() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(0xFF000000);
+            int flags = getWindow().getDecorView().getSystemUiVisibility();
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            getWindow().getDecorView().setSystemUiVisibility(flags);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setStatusBarBlack();
     }
 }

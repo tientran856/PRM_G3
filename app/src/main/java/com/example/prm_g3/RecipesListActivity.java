@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.prm_g3.adapters.RecipeGridAdapter;
@@ -33,13 +35,33 @@ public class RecipesListActivity extends AppCompatActivity {
     private List<String> filteredIds;
     private EditText edtSearch;
     private ImageView btnFilter;
-    private androidx.appcompat.widget.AppCompatButton btnCreateNew;
+    private Button btnCreateNew;
     private DatabaseReference recipesRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipes_list);
+
+        // Set status bar to black
+        setStatusBarBlack();
+
+        // Handle system window insets for status bar
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            rootView.setOnApplyWindowInsetsListener((v, insets) -> {
+                int statusBarHeight = insets.getSystemWindowInsetTop();
+                LinearLayout headerLayout = findViewById(R.id.headerLayout);
+                if (headerLayout != null) {
+                    headerLayout.setPadding(
+                            headerLayout.getPaddingLeft(),
+                            statusBarHeight + 16,
+                            headerLayout.getPaddingRight(),
+                            headerLayout.getPaddingBottom());
+                }
+                return insets;
+            });
+        }
 
         initViews();
         setupRecyclerView();
@@ -55,6 +77,16 @@ public class RecipesListActivity extends AppCompatActivity {
         edtSearch = findViewById(R.id.edtSearch);
         btnFilter = findViewById(R.id.btnFilter);
         btnCreateNew = findViewById(R.id.btnCreateNew);
+
+        // Ensure button is clickable
+        if (btnCreateNew != null) {
+            btnCreateNew.setClickable(true);
+            btnCreateNew.setFocusable(true);
+            Log.d("RecipesListActivity", "btnCreateNew initialized: " + (btnCreateNew != null));
+        } else {
+            Log.e("RecipesListActivity", "btnCreateNew is NULL!");
+        }
+
         recipeList = new ArrayList<>();
         filteredList = new ArrayList<>();
         recipeIds = new ArrayList<>();
@@ -188,9 +220,22 @@ public class RecipesListActivity extends AppCompatActivity {
     }
 
     private void setupCreateButton() {
+        if (btnCreateNew == null) {
+            Log.e("RecipesListActivity", "btnCreateNew is null in setupCreateButton!");
+            return;
+        }
+
+        Log.d("RecipesListActivity", "Setting up create button click listener");
         btnCreateNew.setOnClickListener(v -> {
-            Intent intent = new Intent(RecipesListActivity.this, CreateRecipeActivity.class);
-            startActivity(intent);
+            Log.d("RecipesListActivity", "Create button clicked!");
+            try {
+                Intent intent = new Intent(RecipesListActivity.this, CreateRecipeActivity.class);
+                startActivity(intent);
+                Log.d("RecipesListActivity", "Started CreateRecipeActivity");
+            } catch (Exception e) {
+                Log.e("RecipesListActivity", "Error opening CreateRecipeActivity: " + e.getMessage(), e);
+                Toast.makeText(this, "Lỗi mở trang tạo mới: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
@@ -199,5 +244,20 @@ public class RecipesListActivity extends AppCompatActivity {
             // TODO: Show filter dialog
             Toast.makeText(this, "Bộ lọc", Toast.LENGTH_SHORT).show();
         });
+    }
+
+    private void setStatusBarBlack() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(0xFF000000);
+            int flags = getWindow().getDecorView().getSystemUiVisibility();
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            getWindow().getDecorView().setSystemUiVisibility(flags);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setStatusBarBlack();
     }
 }
