@@ -43,9 +43,6 @@ public class RecipesListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipes_list);
 
-        // Set status bar to black
-        setStatusBarBlack();
-
         // Handle system window insets for status bar
         View rootView = findViewById(android.R.id.content);
         if (rootView != null) {
@@ -244,20 +241,5 @@ public class RecipesListActivity extends AppCompatActivity {
             // TODO: Show filter dialog
             Toast.makeText(this, "Bộ lọc", Toast.LENGTH_SHORT).show();
         });
-    }
-
-    private void setStatusBarBlack() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(0xFF000000);
-            int flags = getWindow().getDecorView().getSystemUiVisibility();
-            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            getWindow().getDecorView().setSystemUiVisibility(flags);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setStatusBarBlack();
     }
 }

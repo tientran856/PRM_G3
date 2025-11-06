@@ -39,9 +39,6 @@ public class MealPlanActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_meal_plan);
 
-        // Set status bar to black
-        setStatusBarBlack();
-
         currentDate = Calendar.getInstance();
         // monthYearFormat không cần dùng nữa vì format thủ công
 
@@ -160,20 +157,5 @@ public class MealPlanActivity extends AppCompatActivity {
             // TODO: Navigate to shopping list activity
             Toast.makeText(this, "Danh sách mua sắm", Toast.LENGTH_SHORT).show();
         });
-    }
-
-    private void setStatusBarBlack() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(0xFF000000);
-            int flags = getWindow().getDecorView().getSystemUiVisibility();
-            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            getWindow().getDecorView().setSystemUiVisibility(flags);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setStatusBarBlack();
     }
 }

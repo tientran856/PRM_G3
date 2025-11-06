@@ -43,12 +43,8 @@ public class CreateRecipeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         try {
             setContentView(R.layout.activity_create_recipe);
-
-            // Set status bar to black
-            setStatusBarBlack();
             initViews();
             setupClickListeners();
             setupDifficultySpinner();
@@ -232,20 +228,5 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Lỗi lưu công thức: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-    }
-
-    private void setStatusBarBlack() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(0xFF000000);
-            int flags = getWindow().getDecorView().getSystemUiVisibility();
-            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            getWindow().getDecorView().setSystemUiVisibility(flags);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setStatusBarBlack();
     }
 }
