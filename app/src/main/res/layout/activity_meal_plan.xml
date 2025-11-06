@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#FFFFFF">
+
+    <!-- Header -->
+    <TextView android:id="@+id/headerTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Kế hoạch bữa ăn" android:textSize="24sp" android:textStyle="bold" android:textColor="#111111" android:gravity="center" android:padding="16dp" android:background="#FFFFFF" android:elevation="2dp" />
+
+    <!-- Date Selector -->
+    <LinearLayout android:id="@+id/dateSelectorLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_below="@id/headerTitle" android:orientation="vertical" android:background="#FFFFFF" android:paddingVertical="12dp" android:elevation="2dp">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingHorizontal="16dp" android:paddingBottom="12dp">
+
+            <ImageButton android:id="@+id/btnPrevMonth" android:layout_width="40dp" android:layout_height="40dp" android:src="@android:drawable/ic_media_previous" android:background="?android:attr/selectableItemBackgroundBorderless" android:contentDescription="Tháng trước" />
+
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center" android:layout_marginHorizontal="16dp">
+
+                <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@android:drawable/ic_menu_today" android:tint="#666666" android:layout_marginEnd="8dp" />
+
+                <TextView android:id="@+id/tvMonthYear" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tháng 11, 2025" android:textSize="16sp" android:textStyle="bold" android:textColor="#111111" />
+            </LinearLayout>
+
+            <ImageButton android:id="@+id/btnNextMonth" android:layout_width="40dp" android:layout_height="40dp" android:src="@android:drawable/ic_media_next" android:background="?android:attr/selectableItemBackgroundBorderless" android:contentDescription="Tháng sau" />
+        </LinearLayout>
+
+        <!-- Days of Week -->
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvDays" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingHorizontal="8dp" />
+    </LinearLayout>
+
+    <!-- Meal Categories List -->
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvMealCategories" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_below="@id/dateSelectorLayout" android:layout_above="@id/bottomNavigation" android:padding="16dp" android:clipToPadding="false" />
+
+    <!-- Floating Action Button -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton android:id="@+id/fabShoppingList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_above="@id/bottomNavigation" android:layout_margin="16dp" android:text="Danh sách mua sắm" android:icon="@android:drawable/ic_menu_recent_history" app:iconTint="#FFFFFF" android:textColor="#FFFFFF" android:backgroundTint="#000000" app:elevation="6dp" />
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottomNavigation" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:background="#FFFFFF" android:elevation="8dp" app:menu="@menu/bottom_nav_menu" app:itemIconTint="@color/nav_selector" app:itemTextColor="@color/nav_selector" app:labelVisibilityMode="labeled" />
+
+</RelativeLayout>
+

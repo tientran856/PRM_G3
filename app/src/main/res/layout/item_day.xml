@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:padding="8dp" android:background="@drawable/day_unselected_background" android:minWidth="48dp" android:clickable="true" android:focusable="true">
+
+    <TextView android:id="@+id/tvDayName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="T2" android:textSize="12sp" android:textColor="#666666" android:layout_marginBottom="4dp" />
+
+    <TextView android:id="@+id/tvDayNumber" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3" android:textSize="16sp" android:textStyle="bold" android:textColor="#666666" />
+
+</LinearLayout>
+

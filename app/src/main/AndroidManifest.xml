@@ -12,6 +12,7 @@
         </activity>
         <activity android:name=".RecipeDetailActivity" />
         <activity android:name=".RecipesListActivity" />
+        <activity android:name=".MealPlanActivity" />
 
     </application>
 

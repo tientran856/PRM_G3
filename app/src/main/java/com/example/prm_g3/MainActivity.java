@@ -151,7 +151,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
                 return true;
             } else if (id == R.id.nav_plan) {
-                Toast.makeText(this, "Kế hoạch", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, MealPlanActivity.class);
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_favorite) {
                 Toast.makeText(this, "Yêu thích", Toast.LENGTH_SHORT).show();
