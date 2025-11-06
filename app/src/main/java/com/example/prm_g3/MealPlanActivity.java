@@ -62,13 +62,15 @@ public class MealPlanActivity extends AppCompatActivity {
         updateMonthYearDisplay();
 
         btnPrevMonth.setOnClickListener(v -> {
-            currentDate.add(Calendar.MONTH, -1);
+            // Lùi 1 tuần (7 ngày)
+            currentDate.add(Calendar.DAY_OF_MONTH, -7);
             updateMonthYearDisplay();
             updateDaysList();
         });
 
         btnNextMonth.setOnClickListener(v -> {
-            currentDate.add(Calendar.MONTH, 1);
+            // Tiến 1 tuần (7 ngày)
+            currentDate.add(Calendar.DAY_OF_MONTH, 7);
             updateMonthYearDisplay();
             updateDaysList();
         });
