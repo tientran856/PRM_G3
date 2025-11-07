@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
@@ -142,7 +143,8 @@ public class MealPlanActivity extends AppCompatActivity {
             } else if (id == R.id.nav_plan) {
                 return true;
             } else if (id == R.id.nav_favorite) {
-                Toast.makeText(this, "Yêu thích", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MealPlanActivity.this, FavoritesActivity.class);
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_profile) {
                 Toast.makeText(this, "Cá nhân", Toast.LENGTH_SHORT).show();

@@ -206,7 +206,8 @@ public class RecipesListActivity extends AppCompatActivity {
                 Toast.makeText(this, "Kế hoạch", Toast.LENGTH_SHORT).show();
                 return true;
             } else if (id == R.id.nav_favorite) {
-                Toast.makeText(this, "Yêu thích", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(RecipesListActivity.this, FavoritesActivity.class);
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_profile) {
                 Toast.makeText(this, "Cá nhân", Toast.LENGTH_SHORT).show();

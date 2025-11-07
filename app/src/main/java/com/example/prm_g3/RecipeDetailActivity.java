@@ -38,6 +38,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
     private DatabaseReference recipeRef;
     private String recipeId;
+    private FavoritesManager favoritesManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +86,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
         star5 = findViewById(R.id.star5);
 
         recipeRef = FirebaseDatabase.getInstance().getReference("recipes").child(recipeId);
+        favoritesManager = new FavoritesManager(this);
     }
 
     private void setupClickListeners() {
@@ -96,8 +98,11 @@ public class RecipeDetailActivity extends AppCompatActivity {
         });
 
         btnFavorite.setOnClickListener(v -> {
-            // Toggle favorite
-            Toast.makeText(this, "Đã thêm vào yêu thích", Toast.LENGTH_SHORT).show();
+            favoritesManager.toggleFavorite(recipeId);
+            updateFavoriteButton();
+            String message = favoritesManager.isFavorite(recipeId) ?
+                "Đã thêm vào yêu thích" : "Đã xóa khỏi yêu thích";
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         });
 
         btnShare.setOnClickListener(v -> {
@@ -198,6 +203,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
                 tvTitle.setText(recipe.title);
                 tvDescription.setText(recipe.description);
                 tvDifficulty.setText(recipe.difficulty);
+
+                // Update favorite button state
+                updateFavoriteButton();
 
                 // Format time
                 int totalTime = recipe.prep_time + recipe.cook_time;
@@ -392,7 +400,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
                         // Time on right
                         TextView tvTime = new TextView(RecipeDetailActivity.this);
-                        tvTime.setText(timeAgo != null && !timeAgo.isEmpty() ? timeAgo : "");
+                        tvTime.setText(timeAgo != null ? timeAgo : "");
                         tvTime.setTextSize(12);
                         tvTime.setTextColor(0xFF999999);
                         RelativeLayout.LayoutParams timeParams = new RelativeLayout.LayoutParams(
@@ -406,39 +414,48 @@ public class RecipeDetailActivity extends AppCompatActivity {
                         commentContainer.addView(topRow);
 
                         // Comment text
-                        TextView tvContent = new TextView(RecipeDetailActivity.this);
-                        tvContent.setText(content);
-                        tvContent.setTextSize(15);
-                        tvContent.setTextColor(0xFF333333);
-                        tvContent.setPadding(52, 8, 0, 0);
-                        tvContent.setLineSpacing(4, 1.0f);
-                        commentContainer.addView(tvContent);
+                        TextView tvComment = new TextView(RecipeDetailActivity.this);
+                        tvComment.setText(content);
+                        tvComment.setTextSize(14);
+                        tvComment.setTextColor(0xFF333333);
+                        tvComment.setPadding(52, 0, 0, 0);
+                        commentContainer.addView(tvComment);
 
-                        // Add divider
-                        View divider = new View(RecipeDetailActivity.this);
-                        divider.setBackgroundColor(0xFFE0E0E0);
-                        LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.MATCH_PARENT,
-                                1);
-                        dividerParams.setMargins(0, 16, 0, 0);
-                        divider.setLayoutParams(dividerParams);
-                        commentContainer.addView(divider);
+                        // Add separator line
+                        View separator = new View(RecipeDetailActivity.this);
+                        separator.setBackgroundColor(0xFFEEEEEE);
+                        LinearLayout.LayoutParams sepParams = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT, 1);
+                        sepParams.setMargins(0, 16, 0, 0);
+                        separator.setLayoutParams(sepParams);
+                        commentContainer.addView(separator);
 
                         commentsList.addView(commentContainer);
                         commentCount++;
                     }
                 }
 
-                // Update rating count
-                if (commentCount > 0) {
-                    tvRating.setText(String.format("%.1f (%d đánh giá)", recipe.rating, commentCount));
-                }
+                // Update rating text with comment count
+                tvRating.setText(String.format("%.1f (%d đánh giá)", recipe.rating, commentCount));
+
+                // Switch to ingredients tab by default
+                switchTab(0);
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(RecipeDetailActivity.this, "Không tải được dữ liệu", Toast.LENGTH_SHORT).show();
+                Toast.makeText(RecipeDetailActivity.this, "Lỗi tải dữ liệu", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void updateFavoriteButton() {
+        if (favoritesManager.isFavorite(recipeId)) {
+            btnFavorite.setImageResource(android.R.drawable.star_big_on);
+            btnFavorite.setColorFilter(0xFFFFD700); // Gold color for favorited
+        } else {
+            btnFavorite.setImageResource(android.R.drawable.star_big_off);
+            btnFavorite.setColorFilter(0xFF666666); // Gray color for not favorited
+        }
     }
 }

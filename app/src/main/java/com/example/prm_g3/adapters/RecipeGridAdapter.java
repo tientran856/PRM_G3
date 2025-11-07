@@ -19,11 +19,20 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
     private Context context;
     private List<Recipe> recipes;
     private List<String> recipeIds;
+    private OnRecipeClickListener onRecipeClickListener;
+
+    public interface OnRecipeClickListener {
+        void onRecipeClick(String recipeId);
+    }
 
     public RecipeGridAdapter(Context context, List<Recipe> recipes, List<String> recipeIds) {
         this.context = context;
         this.recipes = recipes;
         this.recipeIds = recipeIds;
+    }
+
+    public void setOnRecipeClickListener(OnRecipeClickListener listener) {
+        this.onRecipeClickListener = listener;
     }
 
     @NonNull
@@ -34,27 +43,10 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
     }
 
     @Override
-    public int getItemCount() {
-        return recipes.size();
-    }
-
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView imgRecipe;
-        TextView tvTitle, tvTime, tvRating, tvRatingText;
-
-        public ViewHolder(@NonNull View itemView) {
-            super(itemView);
-            imgRecipe = itemView.findViewById(R.id.imgRecipe);
-            tvTitle = itemView.findViewById(R.id.tvTitle);
-            tvTime = itemView.findViewById(R.id.tvTime);
-            tvRating = itemView.findViewById(R.id.tvRating);
-            tvRatingText = itemView.findViewById(R.id.tvRatingText);
-        }
-    }
-
-    @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Recipe r = recipes.get(position);
+        String recipeId = recipeIds.get(position);
+
         holder.tvTitle.setText(r.title);
 
         // Format time
@@ -80,14 +72,35 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
                 .placeholder(R.drawable.ic_home)
                 .into(holder.imgRecipe);
 
-        // 👇 Khi click, mở RecipeDetailActivity
+        // Set click listener
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, RecipeDetailActivity.class);
-            String recipeId = recipeIds != null && position < recipeIds.size()
-                    ? recipeIds.get(position)
-                    : "recipe_00" + (position + 1);
-            intent.putExtra("recipeId", recipeId);
-            context.startActivity(intent);
+            if (onRecipeClickListener != null) {
+                onRecipeClickListener.onRecipeClick(recipeId);
+            } else {
+                // Fallback to direct intent
+                Intent intent = new Intent(context, RecipeDetailActivity.class);
+                intent.putExtra("recipeId", recipeId);
+                context.startActivity(intent);
+            }
         });
+    }
+
+    @Override
+    public int getItemCount() {
+        return recipes.size();
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        ImageView imgRecipe;
+        TextView tvTitle, tvTime, tvRating, tvRatingText;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            imgRecipe = itemView.findViewById(R.id.imgRecipe);
+            tvTitle = itemView.findViewById(R.id.tvTitle);
+            tvTime = itemView.findViewById(R.id.tvTime);
+            tvRating = itemView.findViewById(R.id.tvRating);
+            tvRatingText = itemView.findViewById(R.id.tvRatingText);
+        }
     }
 }
