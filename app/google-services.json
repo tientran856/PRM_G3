@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "640403837473",
+    "firebase_url": "https://prm-g3-default-rtdb.firebaseio.com",
     "project_id": "prm-g3",
     "storage_bucket": "prm-g3.firebasestorage.app"
   },

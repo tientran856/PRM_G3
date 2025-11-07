@@ -12,10 +12,12 @@ import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.prm_g3.activity.AuthActivity;
 import com.example.prm_g3.adapters.RecipeAdapter;
 import com.example.prm_g3.adapters.RecipeGridAdapter;
 import com.example.prm_g3.models.Recipe;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;          // THÊM DÒNG NÀY
 import com.google.firebase.database.*;
 
 import java.util.ArrayList;
@@ -36,6 +38,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            startActivity(new Intent(this, AuthActivity.class));
+            finish();
+            return;
+        }
 
         rvRecipes = findViewById(R.id.rvRecipes);
         rvPopularRecipes = findViewById(R.id.rvPopularRecipes);

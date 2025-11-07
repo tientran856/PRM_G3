@@ -10,6 +10,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".activity.AuthActivity"
+            android:exported="true" />
+
         <activity android:name=".RecipeDetailActivity" />
         <activity android:name=".RecipesListActivity" />
         <activity android:name=".MealPlanActivity" />
