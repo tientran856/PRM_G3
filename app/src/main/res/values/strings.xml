@@ -10,4 +10,14 @@
     <string name="add">Thêm</string>
     <string name="notifications">Thông báo</string>
     <string name="profile">Cá nhân</string>
+
+    <string name="hint_name">Tên của bạn</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Mật khẩu</string>
+    <string name="btn_login">Đăng nhập</string>
+    <string name="btn_register">Đăng ký</string>
+    <string name="tv_no_account">Chưa có tài khoản? Đăng ký</string>
+    <string name="tv_has_account">Đã có tài khoản? Đăng nhập</string>
+
+
 </resources>
