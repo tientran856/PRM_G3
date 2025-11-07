@@ -5,10 +5,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,7 +29,8 @@ import java.util.Set;
 public class FavoritesActivity extends AppCompatActivity implements RecipeGridAdapter.OnRecipeClickListener {
 
     private ImageButton btnBack;
-    private TextView tvTitle, tvEmptyMessage;
+    private TextView tvTitle;
+    private LinearLayout tvEmptyMessage;
     private RecyclerView recyclerViewFavorites;
     private RecipeGridAdapter adapter;
     private List<Recipe> favoriteRecipesList;
@@ -39,11 +42,25 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_favorites);
 
-        initViews();
-        setupRecyclerView();
-        loadFavoriteRecipes();
+        try {
+            setContentView(R.layout.activity_favorites);
+            initViews();
+            setupRecyclerView();
+
+            // Delay loading to ensure everything is initialized
+            new android.os.Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    loadFavoriteRecipes();
+                }
+            }, 100);
+
+        } catch (Exception e) {
+            android.util.Log.e("FavoritesActivity", "Error in onCreate: ", e);
+            Toast.makeText(this, "Lỗi khởi tạo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 
     private void initViews() {
@@ -61,6 +78,19 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
         tvTitle.setText("Công thức yêu thích");
 
         btnBack.setOnClickListener(v -> finish());
+
+        // Listen for favorites changes
+        favoritesManager.setOnFavoritesChangedListener(new FavoritesManager.OnFavoritesChangedListener() {
+            @Override
+            public void onFavoritesChanged() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        loadFavoriteRecipes();
+                    }
+                });
+            }
+        });
     }
 
     private void setupRecyclerView() {
@@ -73,34 +103,85 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
     }
 
     private void loadFavoriteRecipes() {
-        Set<String> favoriteIds = favoritesManager.getFavoriteRecipes();
+        try {
+            android.util.Log.d("FavoritesActivity", "Loading favorite recipes...");
 
-        if (favoriteIds.isEmpty()) {
+            if (favoritesManager == null) {
+                android.util.Log.e("FavoritesActivity", "FavoritesManager is null");
+                showEmptyState();
+                return;
+            }
+
+            Set<String> favoriteIds = favoritesManager.getFavoriteRecipes();
+
+            if (favoriteIds == null || favoriteIds.isEmpty()) {
+                android.util.Log.d("FavoritesActivity", "No favorites found, showing empty state");
+                showEmptyState();
+                return;
+            }
+
+            favoriteRecipesList.clear();
+            favoriteRecipeIds.clear();
+
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+
+            // Show empty state initially, will hide when data loads
             showEmptyState();
-            return;
-        }
 
-        favoriteRecipesList.clear();
-        favoriteRecipeIds.clear();
+            final int[] loadedCount = {0};
+            final int totalCount = favoriteIds.size();
 
-        for (String recipeId : favoriteIds) {
-            recipesRef.child(recipeId).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    Recipe recipe = snapshot.getValue(Recipe.class);
-                    if (recipe != null) {
-                        favoriteRecipesList.add(recipe);
-                        favoriteRecipeIds.add(recipeId);
-                        adapter.notifyDataSetChanged();
-                        hideEmptyState();
-                    }
+            for (String recipeId : favoriteIds) {
+                if (recipeId != null && !recipeId.trim().isEmpty()) {
+                    recipesRef.child(recipeId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            try {
+                                Recipe recipe = snapshot.getValue(Recipe.class);
+                                if (recipe != null) {
+                                    favoriteRecipesList.add(recipe);
+                                    favoriteRecipeIds.add(recipeId);
+                                }
+
+                                loadedCount[0]++;
+
+                                // Update UI when all recipes are loaded
+                                if (loadedCount[0] >= totalCount) {
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (adapter != null) {
+                                                adapter.notifyDataSetChanged();
+                                            }
+                                            if (favoriteRecipesList.isEmpty()) {
+                                                showEmptyState();
+                                            } else {
+                                                hideEmptyState();
+                                            }
+                                        }
+                                    });
+                                }
+                            } catch (Exception e) {
+                                android.util.Log.e("FavoritesActivity", "Error processing recipe data: ", e);
+                                loadedCount[0]++;
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            android.util.Log.e("FavoritesActivity", "Error loading recipe: " + error.getMessage());
+                            loadedCount[0]++;
+                        }
+                    });
+                } else {
+                    loadedCount[0]++;
                 }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Toast.makeText(FavoritesActivity.this, "Lỗi tải dữ liệu: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+            }
+        } catch (Exception e) {
+            android.util.Log.e("FavoritesActivity", "Error in loadFavoriteRecipes: ", e);
+            showEmptyState();
         }
     }
 
@@ -117,7 +198,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
     @Override
     public void onRecipeClick(String recipeId) {
         // Navigate to recipe detail
-        android.content.Intent intent = new android.content.Intent(this, RecipeDetailActivity.class);
+        Intent intent = new Intent(this, RecipeDetailActivity.class);
         intent.putExtra("recipeId", recipeId);
         startActivity(intent);
     }

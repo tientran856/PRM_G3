@@ -1,38 +1,130 @@
 package com.example.prm_g3;
 
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.util.Log;
+import androidx.annotation.NonNull;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class FavoritesManager {
-    private static final String PREF_NAME = "favorites";
-    private static final String KEY_FAVORITE_RECIPES = "favorite_recipes";
+    private static final String TAG = "FavoritesManager";
+    private static final String CURRENT_USER_ID = "user_002"; // Match với Firebase data
 
-    private SharedPreferences sharedPreferences;
+    private DatabaseReference favoritesRef;
+    private Set<String> cachedFavorites;
 
     public FavoritesManager(Context context) {
-        sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        favoritesRef = FirebaseDatabase.getInstance().getReference("favorites");
+        cachedFavorites = new HashSet<>();
+        loadFavoritesFromFirebase();
+    }
+
+    private void loadFavoritesFromFirebase() {
+        try {
+            favoritesRef.orderByChild("user_id").equalTo(CURRENT_USER_ID)
+                    .addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    try {
+                        cachedFavorites.clear();
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            String recipeId = child.child("recipe_id").getValue(String.class);
+                            if (recipeId != null) {
+                                cachedFavorites.add(recipeId);
+                            }
+                        }
+                        Log.d(TAG, "Loaded " + cachedFavorites.size() + " favorites from Firebase");
+
+                        // Notify listener of changes
+                        if (favoritesChangedListener != null) {
+                            favoritesChangedListener.onFavoritesChanged();
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error processing favorites data: ", e);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e(TAG, "Failed to load favorites: " + error.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Error setting up Firebase listener: ", e);
+        }
     }
 
     public boolean isFavorite(String recipeId) {
-        Set<String> favorites = getFavoriteRecipes();
-        return favorites.contains(recipeId);
+        return cachedFavorites.contains(recipeId);
     }
 
     public void addToFavorites(String recipeId) {
-        Set<String> favorites = getFavoriteRecipes();
-        favorites.add(recipeId);
-        saveFavoriteRecipes(favorites);
+        Log.d(TAG, "Adding to favorites: " + recipeId);
+
+        // Check if already favorite to avoid duplicates
+        if (isFavorite(recipeId)) {
+            Log.d(TAG, "Recipe already in favorites: " + recipeId);
+            return;
+        }
+
+        // Create unique key for favorite record
+        String favoriteId = favoritesRef.push().getKey();
+
+        if (favoriteId != null) {
+            Map<String, Object> favoriteData = new HashMap<>();
+            favoriteData.put("user_id", CURRENT_USER_ID);
+            favoriteData.put("recipe_id", recipeId);
+            favoriteData.put("created_at", new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault()).format(new java.util.Date()));
+            favoriteData.put("sync_status", 1);
+
+            favoritesRef.child(favoriteId).setValue(favoriteData)
+                    .addOnSuccessListener(aVoid -> {
+                        cachedFavorites.add(recipeId);
+                        Log.d(TAG, "Successfully added to favorites: " + recipeId);
+                    })
+                    .addOnFailureListener(e -> Log.e(TAG, "Failed to add to favorites: " + e.getMessage()));
+        }
     }
 
     public void removeFromFavorites(String recipeId) {
-        Set<String> favorites = getFavoriteRecipes();
-        favorites.remove(recipeId);
-        saveFavoriteRecipes(favorites);
+        Log.d(TAG, "Removing from favorites: " + recipeId);
+
+        // Find the favorite record to remove
+        favoritesRef.orderByChild("user_id").equalTo(CURRENT_USER_ID)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    String childRecipeId = child.child("recipe_id").getValue(String.class);
+                    if (recipeId.equals(childRecipeId)) {
+                        child.getRef().removeValue()
+                                .addOnSuccessListener(aVoid -> {
+                                    cachedFavorites.remove(recipeId);
+                                    Log.d(TAG, "Successfully removed from favorites: " + recipeId);
+                                })
+                                .addOnFailureListener(e ->
+                                    Log.e(TAG, "Failed to remove from favorites: " + e.getMessage()));
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Failed to query favorites for removal: " + error.getMessage());
+            }
+        });
     }
 
     public void toggleFavorite(String recipeId) {
+        Log.d(TAG, "Toggling favorite for recipe: " + recipeId);
         if (isFavorite(recipeId)) {
             removeFromFavorites(recipeId);
         } else {
@@ -41,12 +133,18 @@ public class FavoritesManager {
     }
 
     public Set<String> getFavoriteRecipes() {
-        return new HashSet<>(sharedPreferences.getStringSet(KEY_FAVORITE_RECIPES, new HashSet<>()));
+        Log.d(TAG, "Getting favorites: " + cachedFavorites.size() + " items");
+        return new HashSet<>(cachedFavorites);
     }
 
-    private void saveFavoriteRecipes(Set<String> favorites) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putStringSet(KEY_FAVORITE_RECIPES, favorites);
-        editor.apply();
+    // Interface for listening to favorites changes
+    public interface OnFavoritesChangedListener {
+        void onFavoritesChanged();
+    }
+
+    private OnFavoritesChangedListener favoritesChangedListener;
+
+    public void setOnFavoritesChangedListener(OnFavoritesChangedListener listener) {
+        this.favoritesChangedListener = listener;
     }
 }
