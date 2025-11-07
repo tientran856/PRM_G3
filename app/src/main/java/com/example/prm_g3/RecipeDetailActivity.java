@@ -135,9 +135,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
                 Toast.makeText(this, "Vui lòng nhập bình luận", Toast.LENGTH_SHORT).show();
                 return;
             }
-            Toast.makeText(this, "Đã gửi đánh giá", Toast.LENGTH_SHORT).show();
-            edtComment.setText("");
-            setRating(0);
+
+            // Save comment to Firebase
+            submitComment(comment, selectedRating);
         });
     }
 
@@ -445,6 +445,64 @@ public class RecipeDetailActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(RecipeDetailActivity.this, "Lỗi tải dữ liệu", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void submitComment(String comment, int rating) {
+        // Create comment data
+        java.util.Map<String, Object> commentData = new java.util.HashMap<>();
+        commentData.put("user_id", "user_002"); // Default user ID
+        commentData.put("content", comment);
+        commentData.put("rating", rating);
+        commentData.put("created_at", new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault()).format(new java.util.Date()));
+        commentData.put("sync_status", 1);
+
+        // Get user name from users table
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users").child("user_002");
+        usersRef.child("name").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String userName = snapshot.getValue(String.class);
+                if (userName == null) userName = "Người dùng";
+
+                commentData.put("user_name", userName);
+
+                // Save comment to Firebase
+                String commentId = recipeRef.child("comments").push().getKey();
+                if (commentId != null) {
+                    recipeRef.child("comments").child(commentId).setValue(commentData)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(RecipeDetailActivity.this, "Đã gửi đánh giá", Toast.LENGTH_SHORT).show();
+                                edtComment.setText("");
+                                setRating(0);
+                                // Reload recipe to show new comment
+                                loadRecipeDetail();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(RecipeDetailActivity.this, "Lỗi gửi đánh giá: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Use default name if can't get from database
+                commentData.put("user_name", "Người dùng");
+
+                String commentId = recipeRef.child("comments").push().getKey();
+                if (commentId != null) {
+                    recipeRef.child("comments").child(commentId).setValue(commentData)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(RecipeDetailActivity.this, "Đã gửi đánh giá", Toast.LENGTH_SHORT).show();
+                                edtComment.setText("");
+                                setRating(0);
+                                loadRecipeDetail();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(RecipeDetailActivity.this, "Lỗi gửi đánh giá: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                }
             }
         });
     }
