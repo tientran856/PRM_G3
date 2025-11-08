@@ -32,7 +32,7 @@
                 <!-- Rating -->
                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="horizontal" android:gravity="center_vertical">
 
-                    <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@android:drawable/star_big_on" android:tint="#FFC107" />
+                    <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@android:drawable/star_big_on" android:tint="#FFD700" />
 
                     <TextView android:id="@+id/tvRating" android:text="4.8 (156 đánh giá)" android:textSize="14sp" android:textColor="#6B6B6B" android:layout_marginStart="6dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                 </LinearLayout>

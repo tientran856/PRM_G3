@@ -516,10 +516,10 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
     private void updateFavoriteButton() {
         if (favoritesManager.isFavorite(recipeId)) {
-            btnFavorite.setImageResource(android.R.drawable.star_big_on);
-            btnFavorite.setColorFilter(0xFFFFD700); // Gold color for favorited
+            btnFavorite.setImageResource(R.drawable.ic_heart_filled);
+            btnFavorite.setColorFilter(0xFFFF6B6B); // Red color for favorited
         } else {
-            btnFavorite.setImageResource(android.R.drawable.star_big_off);
+            btnFavorite.setImageResource(R.drawable.ic_heart_outline);
             btnFavorite.setColorFilter(0xFF666666); // Gray color for not favorited
         }
     }

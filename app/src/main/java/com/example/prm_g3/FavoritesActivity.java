@@ -30,7 +30,7 @@ import java.util.Set;
 public class FavoritesActivity extends AppCompatActivity implements RecipeGridAdapter.OnRecipeClickListener {
 
     private ImageButton btnBack;
-    private TextView tvTitle;
+    private TextView tvTitle, tvFavoriteCount;
     private LinearLayout emptyMessageLayout;
     private RecyclerView recyclerViewFavorites;
     private RecipeGridAdapter adapter;
@@ -39,6 +39,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
 
     private FavoritesManager favoritesManager;
     private DatabaseReference recipesRef;
+    private boolean isLoading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +68,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
     private void initViews() {
         btnBack = findViewById(R.id.btnBack);
         tvTitle = findViewById(R.id.tvTitle);
+        tvFavoriteCount = findViewById(R.id.tvFavoriteCount);
         emptyMessageLayout = findViewById(R.id.tvEmptyMessage);
         recyclerViewFavorites = findViewById(R.id.recyclerViewFavorites);
 
@@ -99,6 +101,13 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
     private void setupRecyclerView() {
         adapter = new RecipeGridAdapter(this, favoriteRecipesList, favoriteRecipeIds);
         adapter.setOnRecipeClickListener(this);
+        adapter.setOnFavoriteChangeListener(new RecipeGridAdapter.OnFavoriteChangeListener() {
+            @Override
+            public void onFavoriteChanged() {
+                // Reload favorites when a recipe is unfavorited
+                loadFavoriteRecipes();
+            }
+        });
 
         GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
         recyclerViewFavorites.setLayoutManager(layoutManager);
@@ -108,6 +117,12 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
     private void loadFavoriteRecipes() {
         try {
             android.util.Log.d("FavoritesActivity", "Loading favorite recipes...");
+
+            // Prevent multiple simultaneous loads
+            if (isLoading) {
+                android.util.Log.d("FavoritesActivity", "Already loading, skipping...");
+                return;
+            }
 
             if (favoritesManager == null) {
                 android.util.Log.e("FavoritesActivity", "FavoritesManager is null");
@@ -119,10 +134,17 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
 
             if (favoriteIds == null || favoriteIds.isEmpty()) {
                 android.util.Log.d("FavoritesActivity", "No favorites found, showing empty state");
+                favoriteRecipesList.clear();
+                favoriteRecipeIds.clear();
+                if (adapter != null) {
+                    adapter.notifyDataSetChanged();
+                }
+                updateFavoriteCount();
                 showEmptyState();
                 return;
             }
 
+            isLoading = true;
             favoriteRecipesList.clear();
             favoriteRecipeIds.clear();
 
@@ -130,8 +152,6 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
                 adapter.notifyDataSetChanged();
             }
 
-            // Show empty state initially, will hide when data loads
-            showEmptyState();
 
             final int[] loadedCount = {0};
             final int totalCount = favoriteIds.size();
@@ -155,9 +175,11 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
+                                            isLoading = false; // Reset loading flag
                                             if (adapter != null) {
                                                 adapter.notifyDataSetChanged();
                                             }
+                                            updateFavoriteCount();
                                             if (favoriteRecipesList.isEmpty()) {
                                                 showEmptyState();
                                             } else {
@@ -184,6 +206,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
             }
         } catch (Exception e) {
             android.util.Log.e("FavoritesActivity", "Error in loadFavoriteRecipes: ", e);
+            isLoading = false; // Reset loading flag
             showEmptyState();
         }
     }
@@ -198,6 +221,12 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
         recyclerViewFavorites.setVisibility(View.VISIBLE);
     }
 
+    private void updateFavoriteCount() {
+        int count = favoriteRecipesList.size();
+        String countText = count + " công thức yêu thích";
+        tvFavoriteCount.setText(countText);
+    }
+
     @Override
     public void onRecipeClick(Recipe recipe, String recipeId) {
         // Navigate to recipe detail
@@ -209,7 +238,8 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
     @Override
     protected void onResume() {
         super.onResume();
-        // Reload favorites in case something changed
+        // Refresh favorites for current user and reload
+        favoritesManager.refreshForCurrentUser();
         loadFavoriteRecipes();
     }
 

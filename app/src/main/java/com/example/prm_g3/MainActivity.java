@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private RecipeGridAdapter popularAdapter;
     private List<Recipe> recipeList;
     private List<Recipe> popularRecipeList;
+    private List<String> featuredRecipeIds;
     private List<String> popularRecipeIds;
     private EditText edtSearch;
     private TextView tvGreeting;
@@ -54,10 +55,11 @@ public class MainActivity extends AppCompatActivity {
         tvGreeting = findViewById(R.id.tvGreeting);
         recipeList = new ArrayList<>();
         popularRecipeList = new ArrayList<>();
+        featuredRecipeIds = new ArrayList<>();
         popularRecipeIds = new ArrayList<>();
 
         // Featured recipes - Linear layout
-        adapter = new RecipeAdapter(this, recipeList);
+        adapter = new RecipeAdapter(this, recipeList, featuredRecipeIds);
         rvRecipes.setLayoutManager(new LinearLayoutManager(this));
         rvRecipes.setAdapter(adapter);
 
@@ -80,6 +82,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         setupUserGreeting(); // Refresh greeting when coming back to main activity
+        // Refresh favorites for current user
+        if (adapter != null) {
+            adapter.refreshFavorites();
+        }
+        if (popularAdapter != null) {
+            popularAdapter.refreshFavorites();
+        }
     }
 
     private void loadRecipes() {
@@ -88,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 recipeList.clear();
                 popularRecipeList.clear();
+                featuredRecipeIds.clear();
                 popularRecipeIds.clear();
 
                 List<Recipe> allRecipes = new ArrayList<>();
@@ -115,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
                 int featuredCount = Math.min(3, recipeWithIds.size());
                 for (int i = 0; i < featuredCount; i++) {
                     recipeList.add(recipeWithIds.get(i).recipe);
+                    featuredRecipeIds.add(recipeWithIds.get(i).recipeId);
                 }
 
                 // Popular recipes: all remaining recipes (or all if less than 3)
@@ -146,12 +157,17 @@ public class MainActivity extends AppCompatActivity {
         edtSearch.setOnEditorActionListener((v, actionId, event) -> {
             String keyword = edtSearch.getText().toString().trim().toLowerCase();
             List<Recipe> filtered = new ArrayList<>();
-            for (Recipe r : recipeList) {
+            List<String> filteredIds = new ArrayList<>();
+
+            for (int i = 0; i < recipeList.size(); i++) {
+                Recipe r = recipeList.get(i);
                 if (r.title.toLowerCase().contains(keyword)) {
                     filtered.add(r);
+                    filteredIds.add(featuredRecipeIds.get(i));
                 }
             }
-            adapter = new RecipeAdapter(MainActivity.this, filtered);
+
+            adapter = new RecipeAdapter(MainActivity.this, filtered, filteredIds);
             rvRecipes.setAdapter(adapter);
             return true;
         });
