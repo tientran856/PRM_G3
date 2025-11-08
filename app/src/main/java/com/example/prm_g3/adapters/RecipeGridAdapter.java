@@ -22,7 +22,7 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
     private OnRecipeClickListener onRecipeClickListener;
 
     public interface OnRecipeClickListener {
-        void onRecipeClick(String recipeId);
+        void onRecipeClick(Recipe recipe, String recipeId);
     }
 
     public RecipeGridAdapter(Context context, List<Recipe> recipes, List<String> recipeIds) {
@@ -75,7 +75,7 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
         // Set click listener
         holder.itemView.setOnClickListener(v -> {
             if (onRecipeClickListener != null) {
-                onRecipeClickListener.onRecipeClick(recipeId);
+                onRecipeClickListener.onRecipeClick(r, recipeId);
             } else {
                 // Fallback to direct intent
                 Intent intent = new Intent(context, RecipeDetailActivity.class);

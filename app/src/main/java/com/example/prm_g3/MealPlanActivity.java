@@ -1,21 +1,35 @@
 package com.example.prm_g3;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.prm_g3.adapters.DayAdapter;
 import com.example.prm_g3.adapters.MealCategoryAdapter;
+import com.example.prm_g3.adapters.RecipeGridAdapter;
 import com.example.prm_g3.models.MealCategory;
+import com.example.prm_g3.models.Recipe;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -30,10 +44,12 @@ public class MealPlanActivity extends AppCompatActivity {
     private ExtendedFloatingActionButton fabShoppingList;
 
     private Calendar currentDate;
+    private Calendar selectedDate;
     private MealCategoryAdapter adapter;
     private DayAdapter dayAdapter;
     private List<MealCategory> mealCategories;
     private List<Calendar> daysOfWeek;
+    private MealPlanManager mealPlanManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,11 +57,12 @@ public class MealPlanActivity extends AppCompatActivity {
         setContentView(R.layout.activity_meal_plan);
 
         currentDate = Calendar.getInstance();
-        // monthYearFormat không cần dùng nữa vì format thủ công
+        selectedDate = (Calendar) currentDate.clone();
+        mealPlanManager = new MealPlanManager(this);
 
         initViews();
         setupDateSelector();
-        setupMealCategories();
+        loadMealPlanForSelectedDate();
         setupBottomNav();
         setupFAB();
     }
@@ -104,8 +121,8 @@ public class MealPlanActivity extends AppCompatActivity {
 
         dayAdapter = new DayAdapter(this, daysOfWeek);
         dayAdapter.setOnDayClickListener((position, day) -> {
-            // TODO: Load meal plan for selected day
-            Toast.makeText(this, "Đã chọn ngày " + day.get(Calendar.DAY_OF_MONTH), Toast.LENGTH_SHORT).show();
+            selectedDate = (Calendar) day.clone();
+            loadMealPlanForSelectedDate();
         });
 
         androidx.recyclerview.widget.LinearLayoutManager layoutManager = new androidx.recyclerview.widget.LinearLayoutManager(
@@ -115,16 +132,134 @@ public class MealPlanActivity extends AppCompatActivity {
         rvDays.setAdapter(dayAdapter);
     }
 
-    private void setupMealCategories() {
-        mealCategories = new ArrayList<>();
-        mealCategories.add(new MealCategory("Bữa sáng", new ArrayList<>()));
-        mealCategories.add(new MealCategory("Bữa trưa", new ArrayList<>()));
-        mealCategories.add(new MealCategory("Bữa tối", new ArrayList<>()));
-        mealCategories.add(new MealCategory("Bữa phụ", new ArrayList<>()));
+    private void loadMealPlanForSelectedDate() {
+        mealCategories = mealPlanManager.loadMealPlan(selectedDate);
+        setupMealCategories();
+    }
 
+    private void setupMealCategories() {
         adapter = new MealCategoryAdapter(this, mealCategories);
+        
+        // 设置添加食谱监听器
+        adapter.setOnAddRecipeClickListener(mealCategoryName -> {
+            showSelectRecipeDialog(mealCategoryName);
+        });
+        
+        // 设置删除食谱监听器
+        adapter.setOnRemoveRecipeClickListener((mealCategoryName, recipeIndex) -> {
+            mealPlanManager.removeRecipeFromMeal(selectedDate, mealCategoryName, recipeIndex);
+            loadMealPlanForSelectedDate();
+            Toast.makeText(this, "Đã xóa món ăn", Toast.LENGTH_SHORT).show();
+        });
+        
         rvMealCategories.setLayoutManager(new LinearLayoutManager(this));
         rvMealCategories.setAdapter(adapter);
+    }
+
+    private void showSelectRecipeDialog(String mealCategoryName) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_select_recipe, null);
+        builder.setView(dialogView);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        EditText edtSearch = dialogView.findViewById(R.id.edtSearchRecipe);
+        RecyclerView rvRecipes = dialogView.findViewById(R.id.rvRecipes);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+        Button btnConfirm = dialogView.findViewById(R.id.btnConfirm);
+
+        List<Recipe> allRecipes = new ArrayList<>();
+        List<String> recipeIds = new ArrayList<>();
+        List<Recipe> filteredRecipes = new ArrayList<>();
+        List<String> filteredIds = new ArrayList<>();
+        final String[] selectedRecipeId = {null};
+        final Recipe[] selectedRecipe = {null};
+
+        RecipeGridAdapter recipeAdapter = new RecipeGridAdapter(this, filteredRecipes, filteredIds);
+        recipeAdapter.setOnRecipeClickListener((recipe, recipeId) -> {
+            selectedRecipeId[0] = recipeId;
+            selectedRecipe[0] = recipe;
+            Toast.makeText(MealPlanActivity.this, "Đã chọn: " + recipe.title, Toast.LENGTH_SHORT).show();
+        });
+
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        rvRecipes.setLayoutManager(layoutManager);
+        rvRecipes.setAdapter(recipeAdapter);
+
+        // 加载所有食谱
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference recipesRef = database.getReference("recipes");
+        
+        recipesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(com.google.firebase.database.DataSnapshot snapshot) {
+                allRecipes.clear();
+                recipeIds.clear();
+                
+                for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
+                    Recipe r = data.getValue(Recipe.class);
+                    if (r != null) {
+                        allRecipes.add(r);
+                        recipeIds.add(data.getKey());
+                    }
+                }
+                
+                filteredRecipes.clear();
+                filteredIds.clear();
+                filteredRecipes.addAll(allRecipes);
+                filteredIds.addAll(recipeIds);
+                recipeAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Toast.makeText(MealPlanActivity.this, "Lỗi tải dữ liệu: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // 搜索功能
+        edtSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String query = s.toString().toLowerCase();
+                filteredRecipes.clear();
+                filteredIds.clear();
+                
+                if (query.isEmpty()) {
+                    filteredRecipes.addAll(allRecipes);
+                    filteredIds.addAll(recipeIds);
+                } else {
+                    for (int i = 0; i < allRecipes.size(); i++) {
+                        Recipe r = allRecipes.get(i);
+                        if (r.title != null && r.title.toLowerCase().contains(query)) {
+                            filteredRecipes.add(r);
+                            filteredIds.add(recipeIds.get(i));
+                        }
+                    }
+                }
+                recipeAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnConfirm.setOnClickListener(v -> {
+            if (selectedRecipeId[0] != null && selectedRecipe[0] != null) {
+                mealPlanManager.addRecipeToMeal(selectedDate, mealCategoryName, selectedRecipe[0]);
+                loadMealPlanForSelectedDate();
+                Toast.makeText(this, "Đã thêm món ăn vào " + mealCategoryName, Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            } else {
+                Toast.makeText(this, "Vui lòng chọn một món ăn", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void setupBottomNav() {
