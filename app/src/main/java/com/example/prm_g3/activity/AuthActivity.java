@@ -11,7 +11,8 @@ import com.example.prm_g3.models.User;
 import com.example.prm_g3.R;  // ĐÃ THÊM
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class AuthActivity extends AppCompatActivity {
 
@@ -67,7 +68,12 @@ public class AuthActivity extends AppCompatActivity {
         if (!validate(email, pass, null)) return;
 
         mAuth.signInWithEmailAndPassword(email, pass)
-                .addOnSuccessListener(a -> goToMain())
+                .addOnSuccessListener(authResult -> {
+                    FirebaseUser fUser = authResult.getUser();
+                    if (fUser != null) {
+                        loadUserData(fUser.getUid());
+                    }
+                })
                 .addOnFailureListener(e -> toast("Sai email hoặc mật khẩu"));
     }
 
@@ -91,11 +97,20 @@ public class AuthActivity extends AppCompatActivity {
 
     private void saveUserToFirestore(FirebaseUser fUser, String name) {
         User user = new User(fUser.getUid(), name, fUser.getEmail());
-        FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(fUser.getUid())
-                .set(user)
-                .addOnFailureListener(e -> android.util.Log.e("Auth", "Lưu user thất bại", e));
+        user.setJoined_at(new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault()).format(new java.util.Date()));
+        user.setBio("Người dùng mới tham gia");
+
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+        usersRef.child(fUser.getUid()).setValue(user)
+                .addOnSuccessListener(aVoid -> {
+                    android.util.Log.d("Auth", "Lưu user thành công");
+                    // Save to UserManager
+                    com.example.prm_g3.UserManager.getInstance().setCurrentUser(user);
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("Auth", "Lưu user thất bại", e);
+                    toast("Lỗi lưu thông tin người dùng");
+                });
     }
 
     private boolean validate(String email, String pass, String name) {
@@ -112,6 +127,28 @@ public class AuthActivity extends AppCompatActivity {
 
     private void toast(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    private void loadUserData(String userId) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
+        userRef.addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
+            @Override
+            public void onDataChange(@androidx.annotation.NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    User user = snapshot.getValue(User.class);
+                    if (user != null) {
+                        com.example.prm_g3.UserManager.getInstance().setCurrentUser(user);
+                    }
+                }
+                goToMain();
+            }
+
+            @Override
+            public void onCancelled(@androidx.annotation.NonNull com.google.firebase.database.DatabaseError error) {
+                android.util.Log.e("Auth", "Lỗi tải user data", error.toException());
+                goToMain(); // Still go to main even if user data fails
+            }
+        });
     }
 
     private void goToMain() {

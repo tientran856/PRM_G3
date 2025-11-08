@@ -335,7 +335,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
                     String userName = cmt.child("user_name").getValue(String.class);
                     String content = cmt.child("content").getValue(String.class);
                     Long rating = cmt.child("rating").getValue(Long.class);
-                    String timeAgo = cmt.child("time_ago").getValue(String.class);
+                    String createdAt = cmt.child("created_at").getValue(String.class);
+                    String timeAgo = formatTimeAgo(createdAt);
 
                     if (content != null && rating != null) {
                         // Main comment container
@@ -520,6 +521,39 @@ public class RecipeDetailActivity extends AppCompatActivity {
         } else {
             btnFavorite.setImageResource(android.R.drawable.star_big_off);
             btnFavorite.setColorFilter(0xFF666666); // Gray color for not favorited
+        }
+    }
+
+    private String formatTimeAgo(String createdAt) {
+        if (createdAt == null || createdAt.isEmpty()) {
+            return "Vừa xong";
+        }
+
+        try {
+            // Parse ISO format time (2025-11-03T15:30:00Z)
+            java.text.SimpleDateFormat iso = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault());
+            java.util.Date commentDate = iso.parse(createdAt);
+            java.util.Date now = new java.util.Date();
+
+            long diffInMillis = now.getTime() - commentDate.getTime();
+            long diffInMinutes = diffInMillis / (60 * 1000);
+            long diffInHours = diffInMillis / (60 * 60 * 1000);
+            long diffInDays = diffInMillis / (24 * 60 * 60 * 1000);
+
+            if (diffInMinutes < 1) {
+                return "Vừa xong";
+            } else if (diffInMinutes < 60) {
+                return diffInMinutes + " phút trước";
+            } else if (diffInHours < 24) {
+                return diffInHours + " giờ trước";
+            } else if (diffInDays < 7) {
+                return diffInDays + " ngày trước";
+            } else {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+                return sdf.format(commentDate);
+            }
+        } catch (Exception e) {
+            return "Vừa xong";
         }
     }
 }

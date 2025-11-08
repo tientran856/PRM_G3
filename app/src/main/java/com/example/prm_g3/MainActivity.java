@@ -10,12 +10,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.prm_g3.activity.AuthActivity;
 import com.example.prm_g3.adapters.RecipeAdapter;
 import com.example.prm_g3.adapters.RecipeGridAdapter;
 import com.example.prm_g3.models.Recipe;
+import com.example.prm_g3.models.User;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;          // THÊM DÒNG NÀY
 import com.google.firebase.database.*;
@@ -32,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Recipe> popularRecipeList;
     private List<String> popularRecipeIds;
     private EditText edtSearch;
+    private TextView tvGreeting;
     private DatabaseReference recipesRef;
 
     @Override
@@ -48,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         rvRecipes = findViewById(R.id.rvRecipes);
         rvPopularRecipes = findViewById(R.id.rvPopularRecipes);
         edtSearch = findViewById(R.id.edtSearch);
+        tvGreeting = findViewById(R.id.tvGreeting);
         recipeList = new ArrayList<>();
         popularRecipeList = new ArrayList<>();
         popularRecipeIds = new ArrayList<>();
@@ -66,9 +70,16 @@ public class MainActivity extends AppCompatActivity {
         recipesRef = database.getReference("recipes");
 
         loadRecipes();
+        setupUserGreeting();
 
         setupBottomNav();
         setupSearch();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setupUserGreeting(); // Refresh greeting when coming back to main activity
     }
 
     private void loadRecipes() {
@@ -174,6 +185,67 @@ public class MainActivity extends AppCompatActivity {
             }
             return false;
         });
+    }
+
+    private void setupUserGreeting() {
+        // Check if user data is already loaded
+        if (UserManager.getInstance().getCurrentUser() != null) {
+            updateGreeting(UserManager.getInstance().getCurrentUser().getName());
+        } else {
+            // Load user data from Firebase
+            String currentUserId = UserManager.getInstance().getCurrentUserId();
+            if (currentUserId != null) {
+                DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(currentUserId);
+                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            User user = snapshot.getValue(User.class);
+                            if (user != null) {
+                                UserManager.getInstance().setCurrentUser(user);
+                                updateGreeting(user.getName());
+                            } else {
+                                updateGreeting(null);
+                            }
+                        } else {
+                            updateGreeting(null);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("MainActivity", "Lỗi tải thông tin user: " + error.getMessage());
+                        updateGreeting(null);
+                    }
+                });
+            } else {
+                updateGreeting(null);
+            }
+        }
+    }
+
+    private void updateGreeting(String userName) {
+        // Get current time for appropriate greeting
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        int hour = calendar.get(java.util.Calendar.HOUR_OF_DAY);
+
+        String timeGreeting;
+        if (hour < 12) {
+            timeGreeting = "Chào buổi sáng";
+        } else if (hour < 18) {
+            timeGreeting = "Chào buổi chiều";
+        } else {
+            timeGreeting = "Chào buổi tối";
+        }
+
+        String greeting;
+        if (userName != null && !userName.isEmpty()) {
+            greeting = timeGreeting + ", " + userName + "!";
+        } else {
+            greeting = timeGreeting + ", Chef!";
+        }
+
+        tvGreeting.setText(greeting);
     }
 
     // Helper class to keep recipe and ID together during sorting

@@ -20,6 +20,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -40,6 +41,7 @@ public class ProfileActivity extends AppCompatActivity {
         setupAuth();
         loadUserProfile();
         setupListeners();
+        setupBottomNav();
     }
 
     private void initViews() {
@@ -146,7 +148,11 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        btnBack.setOnClickListener(v -> finish());
+        btnBack.setOnClickListener(v -> {
+            Intent intent = new Intent(ProfileActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        });
 
         btnLogout.setOnClickListener(v -> showLogoutDialog());
 
@@ -172,5 +178,34 @@ public class ProfileActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void setupBottomNav() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_profile);
+
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) {
+                Intent intent = new Intent(ProfileActivity.this, MainActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (id == R.id.nav_recipes) {
+                Intent intent = new Intent(ProfileActivity.this, RecipesListActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (id == R.id.nav_plan) {
+                Intent intent = new Intent(ProfileActivity.this, MealPlanActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (id == R.id.nav_favorite) {
+                Intent intent = new Intent(ProfileActivity.this, FavoritesActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (id == R.id.nav_profile) {
+                return true; // Already on profile page
+            }
+            return false;
+        });
     }
 }
