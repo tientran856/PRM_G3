@@ -450,16 +450,22 @@ public class RecipeDetailActivity extends AppCompatActivity {
     }
 
     private void submitComment(String comment, int rating) {
+        // Get current user ID
+        String currentUserId = UserManager.getInstance().getCurrentUserId();
+        if (currentUserId == null) {
+            currentUserId = "user_002"; // Fallback to default user
+        }
+
         // Create comment data
         java.util.Map<String, Object> commentData = new java.util.HashMap<>();
-        commentData.put("user_id", "user_002"); // Default user ID
+        commentData.put("user_id", currentUserId);
         commentData.put("content", comment);
         commentData.put("rating", rating);
         commentData.put("created_at", new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault()).format(new java.util.Date()));
         commentData.put("sync_status", 1);
 
         // Get user name from users table
-        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users").child("user_002");
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users").child(currentUserId);
         usersRef.child("name").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

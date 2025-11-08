@@ -19,4 +19,12 @@ public class User {
     public String getAvatar_url() { return avatar_url; }
     public String getBio() { return bio; }
     public String getJoined_at() { return joined_at; }
+
+    // Setters
+    public void setId(String id) { this.id = id; }
+    public void setName(String name) { this.name = name; }
+    public void setEmail(String email) { this.email = email; }
+    public void setAvatar_url(String avatar_url) { this.avatar_url = avatar_url; }
+    public void setBio(String bio) { this.bio = bio; }
+    public void setJoined_at(String joined_at) { this.joined_at = joined_at; }
 }

@@ -272,8 +272,8 @@ public class MealPlanActivity extends AppCompatActivity {
                 finish();
                 return true;
             } else if (id == R.id.nav_recipes) {
-                finish();
-                // TODO: Navigate to RecipesListActivity
+                Intent intent = new Intent(MealPlanActivity.this, RecipesListActivity.class);
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_plan) {
                 return true;
@@ -282,7 +282,8 @@ public class MealPlanActivity extends AppCompatActivity {
                 startActivity(intent);
                 return true;
             } else if (id == R.id.nav_profile) {
-                Toast.makeText(this, "Cá nhân", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MealPlanActivity.this, ProfileActivity.class);
+                startActivity(intent);
                 return true;
             }
             return false;

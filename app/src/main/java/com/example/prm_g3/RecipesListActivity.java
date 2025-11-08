@@ -203,14 +203,16 @@ public class RecipesListActivity extends AppCompatActivity {
             } else if (id == R.id.nav_recipes) {
                 return true;
             } else if (id == R.id.nav_plan) {
-                Toast.makeText(this, "Kế hoạch", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(RecipesListActivity.this, MealPlanActivity.class);
+                startActivity(intent);
                 return true;
             } else if (id == R.id.nav_favorite) {
                 Intent intent = new Intent(RecipesListActivity.this, FavoritesActivity.class);
                 startActivity(intent);
                 return true;
             } else if (id == R.id.nav_profile) {
-                Toast.makeText(this, "Cá nhân", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(RecipesListActivity.this, ProfileActivity.class);
+                startActivity(intent);
                 return true;
             }
             return false;

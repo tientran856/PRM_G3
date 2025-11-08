@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.example.prm_g3.adapters.RecipeGridAdapter;
 import com.example.prm_g3.models.Recipe;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,7 +31,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
 
     private ImageButton btnBack;
     private TextView tvTitle;
-    private LinearLayout tvEmptyMessage;
+    private LinearLayout emptyMessageLayout;
     private RecyclerView recyclerViewFavorites;
     private RecipeGridAdapter adapter;
     private List<Recipe> favoriteRecipesList;
@@ -66,7 +67,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
     private void initViews() {
         btnBack = findViewById(R.id.btnBack);
         tvTitle = findViewById(R.id.tvTitle);
-        tvEmptyMessage = findViewById(R.id.tvEmptyMessage);
+        emptyMessageLayout = findViewById(R.id.tvEmptyMessage);
         recyclerViewFavorites = findViewById(R.id.recyclerViewFavorites);
 
         favoritesManager = new FavoritesManager(this);
@@ -91,6 +92,8 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
                 });
             }
         });
+
+        setupBottomNav();
     }
 
     private void setupRecyclerView() {
@@ -186,12 +189,12 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
     }
 
     private void showEmptyState() {
-        tvEmptyMessage.setVisibility(View.VISIBLE);
+        emptyMessageLayout.setVisibility(View.VISIBLE);
         recyclerViewFavorites.setVisibility(View.GONE);
     }
 
     private void hideEmptyState() {
-        tvEmptyMessage.setVisibility(View.GONE);
+        emptyMessageLayout.setVisibility(View.GONE);
         recyclerViewFavorites.setVisibility(View.VISIBLE);
     }
 
@@ -208,5 +211,35 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
         super.onResume();
         // Reload favorites in case something changed
         loadFavoriteRecipes();
+    }
+
+    private void setupBottomNav() {
+        com.google.android.material.bottomnavigation.BottomNavigationView bottomNavigationView =
+            findViewById(R.id.bottomNavigation);
+        bottomNavigationView.setSelectedItemId(R.id.nav_favorite);
+
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) {
+                Intent intent = new Intent(FavoritesActivity.this, MainActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (id == R.id.nav_recipes) {
+                Intent intent = new Intent(FavoritesActivity.this, RecipesListActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (id == R.id.nav_plan) {
+                Intent intent = new Intent(FavoritesActivity.this, MealPlanActivity.class);
+                startActivity(intent);
+                return true;
+            } else if (id == R.id.nav_favorite) {
+                return true;
+            } else if (id == R.id.nav_profile) {
+                Intent intent = new Intent(FavoritesActivity.this, ProfileActivity.class);
+                startActivity(intent);
+                return true;
+            }
+            return false;
+        });
     }
 }
