@@ -143,16 +143,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
     private void setRating(int rating) {
         selectedRating = rating;
-        star1.setImageResource(rating >= 1 ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
-        star1.setColorFilter(rating >= 1 ? 0xFFFFD700 : 0xFFCCCCCC);
-        star2.setImageResource(rating >= 2 ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
-        star2.setColorFilter(rating >= 2 ? 0xFFFFD700 : 0xFFCCCCCC);
-        star3.setImageResource(rating >= 3 ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
-        star3.setColorFilter(rating >= 3 ? 0xFFFFD700 : 0xFFCCCCCC);
-        star4.setImageResource(rating >= 4 ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
-        star4.setColorFilter(rating >= 4 ? 0xFFFFD700 : 0xFFCCCCCC);
-        star5.setImageResource(rating >= 5 ? android.R.drawable.star_big_on : android.R.drawable.star_big_off);
-        star5.setColorFilter(rating >= 5 ? 0xFFFFD700 : 0xFFCCCCCC);
+
     }
 
     private void switchTab(int index) {
