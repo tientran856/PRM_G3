@@ -196,7 +196,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
     }
 
     @Override
-    public void onRecipeClick(String recipeId) {
+    public void onRecipeClick(Recipe recipe, String recipeId) {
         // Navigate to recipe detail
         Intent intent = new Intent(this, RecipeDetailActivity.class);
         intent.putExtra("recipeId", recipeId);
