@@ -30,11 +30,13 @@ public class ShareRecipeDialog extends Dialog {
     private String recipeId;
     private String recipeTitle;
     private String shareLink;
+    private String qrCodeUrl;  // URL của mã QR đã lưu (nếu có)
 
     private ImageView imgQRCode;
     private TextView tvShareLink;
     private TextView tvRecipeTitle;
     private ImageButton btnCopyLink;
+    private Button btnDownloadQR;
     private Button btnShareViaApp;
     private Button btnClose;
 
@@ -43,8 +45,29 @@ public class ShareRecipeDialog extends Dialog {
         this.context = context;
         this.recipeId = recipeId;
         this.recipeTitle = recipeTitle;
-        // Tạo deep link cho công thức
+        // Tạo deep link cho công thức (mặc định)
         this.shareLink = "prmrecipe://recipe/" + recipeId;
+        this.qrCodeUrl = null;
+    }
+
+    public ShareRecipeDialog(Context context, String recipeId, String recipeTitle, String qrCodeUrl) {
+        super(context);
+        this.context = context;
+        this.recipeId = recipeId;
+        this.recipeTitle = recipeTitle;
+        // Tạo deep link cho công thức (mặc định)
+        this.shareLink = "prmrecipe://recipe/" + recipeId;
+        this.qrCodeUrl = qrCodeUrl;
+    }
+
+    public ShareRecipeDialog(Context context, String recipeId, String recipeTitle, String qrCodeUrl, String shareLink) {
+        super(context);
+        this.context = context;
+        this.recipeId = recipeId;
+        this.recipeTitle = recipeTitle;
+        // Sử dụng share_link tùy chỉnh nếu có, nếu không thì dùng deep link
+        this.shareLink = (shareLink != null && !shareLink.isEmpty()) ? shareLink : "prmrecipe://recipe/" + recipeId;
+        this.qrCodeUrl = qrCodeUrl;
     }
 
     @Override
@@ -55,7 +78,7 @@ public class ShareRecipeDialog extends Dialog {
 
         initViews();
         setupClickListeners();
-        generateQRCode();
+        loadQRCode();
         updateUI();
     }
 
@@ -64,12 +87,15 @@ public class ShareRecipeDialog extends Dialog {
         tvShareLink = findViewById(R.id.tvShareLink);
         tvRecipeTitle = findViewById(R.id.tvRecipeTitle);
         btnCopyLink = findViewById(R.id.btnCopyLink);
+        btnDownloadQR = findViewById(R.id.btnDownloadQR);
         btnShareViaApp = findViewById(R.id.btnShareViaApp);
         btnClose = findViewById(R.id.btnClose);
     }
 
     private void setupClickListeners() {
         btnCopyLink.setOnClickListener(v -> copyLinkToClipboard());
+
+        btnDownloadQR.setOnClickListener(v -> downloadQRCode());
 
         btnShareViaApp.setOnClickListener(v -> shareViaIntent());
 
@@ -79,6 +105,19 @@ public class ShareRecipeDialog extends Dialog {
     private void updateUI() {
         tvRecipeTitle.setText(recipeTitle);
         tvShareLink.setText(shareLink);
+    }
+
+    private void loadQRCode() {
+        // Nếu có QR code đã lưu, load từ URL
+        if (qrCodeUrl != null && !qrCodeUrl.isEmpty()) {
+            android.util.Log.d("ShareRecipeDialog", "Loading saved QR code from: " + qrCodeUrl);
+            com.bumptech.glide.Glide.with(context)
+                    .load(qrCodeUrl)
+                    .into(imgQRCode);
+        } else {
+            // Nếu không có, tạo mã QR mới từ link
+            generateQRCode();
+        }
     }
 
     private void generateQRCode() {
@@ -114,6 +153,51 @@ public class ShareRecipeDialog extends Dialog {
         ClipData clip = ClipData.newPlainText("Recipe Link", shareLink);
         clipboard.setPrimaryClip(clip);
         Toast.makeText(context, "Đã sao chép link", Toast.LENGTH_SHORT).show();
+    }
+
+    private void downloadQRCode() {
+        try {
+            // Lấy bitmap từ ImageView
+            imgQRCode.setDrawingCacheEnabled(true);
+            imgQRCode.buildDrawingCache();
+            Bitmap qrBitmap = imgQRCode.getDrawingCache();
+            
+            if (qrBitmap == null) {
+                Toast.makeText(context, "Không thể tải mã QR", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // Lưu vào MediaStore (Android 10+)
+            String fileName = "QR_" + recipeTitle.replaceAll("[^a-zA-Z0-9]", "_") + "_" + System.currentTimeMillis() + ".png";
+            android.content.ContentValues values = new android.content.ContentValues();
+            values.put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, fileName);
+            values.put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/png");
+            values.put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/PRM_Recipe");
+            
+            android.content.ContentResolver resolver = context.getContentResolver();
+            android.net.Uri uri = resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            
+            if (uri != null) {
+                try {
+                    java.io.OutputStream outputStream = resolver.openOutputStream(uri);
+                    if (outputStream != null) {
+                        qrBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+                        outputStream.close();
+                        Toast.makeText(context, "Đã lưu mã QR vào thư mục Pictures/PRM_Recipe", Toast.LENGTH_LONG).show();
+                    }
+                } catch (Exception e) {
+                    android.util.Log.e("ShareRecipeDialog", "Error saving QR code: " + e.getMessage(), e);
+                    Toast.makeText(context, "Lỗi lưu mã QR: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(context, "Không thể lưu mã QR", Toast.LENGTH_SHORT).show();
+            }
+            
+            imgQRCode.setDrawingCacheEnabled(false);
+        } catch (Exception e) {
+            android.util.Log.e("ShareRecipeDialog", "Error downloading QR code: " + e.getMessage(), e);
+            Toast.makeText(context, "Lỗi tải mã QR: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void shareViaIntent() {

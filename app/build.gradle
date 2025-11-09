@@ -55,6 +55,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)  // THÊM ĐỂ DÙNG FIRESTORE
+    implementation 'com.google.firebase:firebase-storage'  // THÊM FIREBASE STORAGE ĐỂ UPLOAD QR CODE
     implementation 'com.google.code.gson:gson:2.10.1'  // THÊM GSON ĐỂ LƯU TRỮ DỮ LIỆU
     implementation 'com.journeyapps:zxing-android-embedded:4.3.0'  // THƯ VIỆN TẠO QR CODE
 }

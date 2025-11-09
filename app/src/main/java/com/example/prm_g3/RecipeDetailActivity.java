@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.prm_g3.models.Recipe;
+import com.example.prm_g3.RecipeLinkManager;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -26,7 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 public class RecipeDetailActivity extends AppCompatActivity {
 
     private ImageView imgRecipe;
-    private ImageButton btnBack, btnFavorite, btnShare;
+    private ImageButton btnBack, btnFavorite, btnShare, btnEdit, btnDelete;
     private TextView tvTitle, tvDescription, tvRating, tvTime, tvServings, tvDifficulty;
     private TextView tabIngredients, tabSteps, tabComments;
     private LinearLayout containerIngredients, containerSteps, containerComments, commentsList;
@@ -114,6 +115,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         btnFavorite = findViewById(R.id.btnFavorite);
         btnShare = findViewById(R.id.btnShare);
+        btnEdit = findViewById(R.id.btnEdit);
+        btnDelete = findViewById(R.id.btnDelete);
         tvTitle = findViewById(R.id.tvTitle);
         tvDescription = findViewById(R.id.tvDescription);
         tvRating = findViewById(R.id.tvRating);
@@ -158,9 +161,71 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
         btnShare.setOnClickListener(v -> {
             String recipeTitle = tvTitle.getText().toString();
-            ShareRecipeDialog shareDialog = new ShareRecipeDialog(RecipeDetailActivity.this, recipeId, recipeTitle);
-            shareDialog.show();
+            // Lấy QR code URL và share_link từ recipe nếu có
+            if (recipeRef != null) {
+                recipeRef.addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                        Recipe recipe = snapshot.getValue(Recipe.class);
+                        String qrCodeUrl = (recipe != null && recipe.qr_code_url != null) ? recipe.qr_code_url : null;
+                        String shareLink = (recipe != null && recipe.share_link != null && !recipe.share_link.isEmpty()) 
+                            ? recipe.share_link : null;
+                        
+                        // Nếu chưa có share_link, kiểm tra link hardcode
+                        if (shareLink == null && recipe != null && recipe.title != null) {
+                            shareLink = RecipeLinkManager.getShareLinkForRecipe(recipe.title);
+                            if (shareLink != null) {
+                                android.util.Log.d("RecipeDetailActivity", "Sử dụng link hardcode cho công thức: " + recipe.title + " -> " + shareLink);
+                            }
+                        }
+                        
+                        ShareRecipeDialog shareDialog;
+                        if (shareLink != null) {
+                            // Có share_link (từ database hoặc hardcode), sử dụng nó
+                            shareDialog = new ShareRecipeDialog(RecipeDetailActivity.this, recipeId, recipeTitle, qrCodeUrl, shareLink);
+                        } else if (qrCodeUrl != null && !qrCodeUrl.isEmpty()) {
+                            // Chỉ có QR code URL, dùng deep link mặc định
+                            shareDialog = new ShareRecipeDialog(RecipeDetailActivity.this, recipeId, recipeTitle, qrCodeUrl);
+                        } else {
+                            // Không có gì, dùng deep link mặc định
+                            shareDialog = new ShareRecipeDialog(RecipeDetailActivity.this, recipeId, recipeTitle);
+                        }
+                        shareDialog.show();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {
+                        // Nếu lỗi, kiểm tra link hardcode trước khi hiển thị dialog
+                        String hardcodedLink = RecipeLinkManager.getShareLinkForRecipe(recipeTitle);
+                        ShareRecipeDialog shareDialog;
+                        if (hardcodedLink != null) {
+                            shareDialog = new ShareRecipeDialog(RecipeDetailActivity.this, recipeId, recipeTitle, null, hardcodedLink);
+                        } else {
+                            shareDialog = new ShareRecipeDialog(RecipeDetailActivity.this, recipeId, recipeTitle);
+                        }
+                        shareDialog.show();
+                    }
+                });
+            } else {
+                // Nếu không có recipeRef, vẫn kiểm tra link hardcode
+                String hardcodedLink = RecipeLinkManager.getShareLinkForRecipe(recipeTitle);
+                ShareRecipeDialog shareDialog;
+                if (hardcodedLink != null) {
+                    shareDialog = new ShareRecipeDialog(RecipeDetailActivity.this, recipeId, recipeTitle, null, hardcodedLink);
+                } else {
+                    shareDialog = new ShareRecipeDialog(RecipeDetailActivity.this, recipeId, recipeTitle);
+                }
+                shareDialog.show();
+            }
         });
+
+        btnEdit.setOnClickListener(v -> {
+            Intent intent = new Intent(RecipeDetailActivity.this, CreateRecipeActivity.class);
+            intent.putExtra("recipeId", recipeId);
+            startActivityForResult(intent, 100); // Request code để refresh sau khi edit
+        });
+
+        btnDelete.setOnClickListener(v -> showDeleteConfirmationDialog());
 
         // Tab navigation
         tabIngredients.setOnClickListener(v -> switchTab(0));
@@ -205,6 +270,15 @@ public class RecipeDetailActivity extends AppCompatActivity {
         star5.setColorFilter(rating >= 5 ? 0xFFFFD700 : 0xFFCCCCCC);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // Refresh recipe detail sau khi chỉnh sửa
+        if (requestCode == 100 && resultCode == RESULT_OK) {
+            loadRecipeDetail();
+        }
+    }
+    
     private void switchTab(int index) {
         // Reset all tabs
         tabIngredients.setBackgroundResource(R.drawable.tab_unselected_background);
@@ -266,6 +340,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
                 // Update favorite button state
                 updateFavoriteButton();
+                
+                // Check and show edit/delete buttons if user is author
+                checkAndShowEditButton(recipe);
 
                 // Format time
                 int totalTime = recipe.prep_time + recipe.cook_time;
@@ -581,6 +658,69 @@ public class RecipeDetailActivity extends AppCompatActivity {
         } else {
             btnFavorite.setImageResource(R.drawable.ic_heart_outline);
             btnFavorite.setColorFilter(0xFF666666); // Gray color for not favorited
+        }
+    }
+
+    private void checkAndShowEditButton(Recipe recipe) {
+        // Kiểm tra xem người dùng hiện tại có phải là người tạo công thức không
+        String currentUserId = UserManager.getInstance().getCurrentUserId();
+        if (currentUserId != null && recipe.author_id != null && currentUserId.equals(recipe.author_id)) {
+            // Hiển thị nút chỉnh sửa và xóa nếu là người tạo
+            btnEdit.setVisibility(View.VISIBLE);
+            btnDelete.setVisibility(View.VISIBLE);
+        } else {
+            // Ẩn nút chỉnh sửa và xóa nếu không phải người tạo
+            btnEdit.setVisibility(View.GONE);
+            btnDelete.setVisibility(View.GONE);
+        }
+    }
+    
+    private void showDeleteConfirmationDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Xác nhận xóa")
+                .setMessage("Bạn có chắc chắn muốn xóa công thức này?")
+                .setPositiveButton("Xóa", (dialog, which) -> deleteRecipe())
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+    
+    private void deleteRecipe() {
+        if (recipeRef != null) {
+            // Xóa mã QR từ Firebase Storage nếu có
+            recipeRef.addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                    Recipe recipe = snapshot.getValue(Recipe.class);
+                    if (recipe != null && recipe.qr_code_url != null && !recipe.qr_code_url.isEmpty()) {
+                        // Xóa QR code từ Firebase Storage
+                        try {
+                            com.google.firebase.storage.FirebaseStorage storage = com.google.firebase.storage.FirebaseStorage.getInstance();
+                            com.google.firebase.storage.StorageReference qrCodeRef = storage.getReferenceFromUrl(recipe.qr_code_url);
+                            qrCodeRef.delete().addOnSuccessListener(aVoid -> {
+                                android.util.Log.d("RecipeDetailActivity", "QR code deleted from Storage");
+                            }).addOnFailureListener(e -> {
+                                android.util.Log.e("RecipeDetailActivity", "Error deleting QR code: " + e.getMessage());
+                            });
+                        } catch (Exception e) {
+                            android.util.Log.e("RecipeDetailActivity", "Error parsing QR code URL: " + e.getMessage());
+                        }
+                    }
+                }
+                
+                @Override
+                public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {
+                }
+            });
+            
+            // Xóa công thức từ Firebase Database
+            recipeRef.removeValue()
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(RecipeDetailActivity.this, "Đã xóa công thức", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(RecipeDetailActivity.this, "Lỗi xóa công thức: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
         }
     }
 

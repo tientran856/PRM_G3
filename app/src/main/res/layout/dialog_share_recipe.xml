@@ -93,6 +93,17 @@
             android:gravity="end">
 
             <Button
+                android:id="@+id/btnDownloadQR"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tải mã QR"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#2196F3"
+                android:layout_marginEnd="8dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp" />
+
+            <Button
                 android:id="@+id/btnShareViaApp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

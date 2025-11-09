@@ -15,12 +15,16 @@
                 <!-- Back Button -->
                 <ImageButton android:id="@+id/btnBack" android:layout_width="48dp" android:layout_height="48dp" android:layout_alignParentStart="true" android:layout_alignParentTop="true" android:layout_margin="16dp" android:background="@drawable/bg_circle_translucent" android:src="@drawable/ic_arrow_back_white" android:scaleType="center" android:contentDescription="Back" />
 
-                <!-- Favorite + Share -->
+                <!-- Favorite + Share + Edit -->
                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_alignParentTop="true" android:layout_margin="16dp" android:orientation="horizontal">
 
                     <ImageButton android:id="@+id/btnFavorite" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_circle_translucent" android:src="@drawable/ic_heart_white" android:scaleType="center" android:contentDescription="Favorite" />
 
-                    <ImageButton android:id="@+id/btnShare" android:layout_width="48dp" android:layout_height="48dp" android:background="@drawable/bg_circle_translucent" android:src="@drawable/ic_share_white" android:scaleType="center" android:contentDescription="Share" />
+                    <ImageButton android:id="@+id/btnShare" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_circle_translucent" android:src="@drawable/ic_share_white" android:scaleType="center" android:contentDescription="Share" />
+
+                    <ImageButton android:id="@+id/btnEdit" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginEnd="8dp" android:background="@drawable/bg_circle_translucent" android:src="@android:drawable/ic_menu_edit" android:scaleType="center" android:contentDescription="Edit" android:visibility="gone" />
+                    
+                    <ImageButton android:id="@+id/btnDelete" android:layout_width="48dp" android:layout_height="48dp" android:background="@drawable/bg_circle_translucent" android:src="@android:drawable/ic_menu_delete" android:scaleType="center" android:contentDescription="Delete" android:visibility="gone" />
                 </LinearLayout>
             </RelativeLayout>
 

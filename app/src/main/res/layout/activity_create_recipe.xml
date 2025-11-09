@@ -9,7 +9,7 @@
 
             <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp" android:background="@android:color/transparent" android:src="@drawable/ic_arrow_back" android:tint="#000000" android:contentDescription="Back" />
 
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tạo công thức mới" android:textSize="20sp" android:textStyle="bold" android:textColor="#111111" android:layout_marginStart="16dp" />
+            <TextView android:id="@+id/tvTitle" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tạo công thức mới" android:textSize="20sp" android:textStyle="bold" android:textColor="#111111" android:layout_marginStart="16dp" />
 
             <Button android:id="@+id/btnSave" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Lưu" android:textColor="#FFFFFF" android:background="#000000" android:paddingHorizontal="20dp" android:paddingVertical="10dp" android:textSize="14sp" android:textStyle="bold" />
         </LinearLayout>
@@ -20,17 +20,41 @@
             <!-- Image Upload Section -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hình ảnh món ăn" android:textSize="16sp" android:textStyle="bold" android:textColor="#111111" android:layout_marginBottom="8dp" />
 
-            <RelativeLayout android:id="@+id/containerImageUpload" android:layout_width="match_parent" android:layout_height="200dp" android:background="@drawable/image_upload_background" android:gravity="center" android:clickable="true" android:focusable="true" android:layout_marginBottom="24dp">
+            <RelativeLayout android:id="@+id/containerImageUpload" android:layout_width="match_parent" android:layout_height="200dp" android:background="@drawable/image_upload_background" android:gravity="center" android:clickable="true" android:focusable="true" android:layout_marginBottom="16dp">
 
-                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center">
+                <LinearLayout android:id="@+id/placeholderImageUpload" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center">
 
-                    <ImageView android:layout_width="48dp" android:layout_height="48dp" android:src="@android:drawable/ic_menu_gallery" android:tint="#999999" />
+                    <ImageView android:layout_width="48dp" android:layout_height="48dp" android:src="@android:drawable/ic_menu_gallery" android:tint="#999999" android:clickable="false" android:focusable="false" />
 
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nhấn để tải ảnh lên" android:textSize="14sp" android:textColor="#999999" android:layout_marginTop="8dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nhấn để tải ảnh lên" android:textSize="14sp" android:textColor="#999999" android:layout_marginTop="8dp" android:clickable="false" android:focusable="false" />
                 </LinearLayout>
 
-                <ImageView android:id="@+id/imgRecipe" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" />
+                <ImageView android:id="@+id/imgRecipe" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" android:clickable="false" android:focusable="false" />
             </RelativeLayout>
+
+            <!-- QR Code Upload Section -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mã QR Code (Tùy chọn)" android:textSize="16sp" android:textStyle="bold" android:textColor="#111111" android:layout_marginBottom="8dp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tạo mã QR bằng ứng dụng tạo QR code, sau đó chọn ảnh mã QR để gắn vào công thức này" android:textSize="12sp" android:textColor="#666666" android:layout_marginBottom="8dp" />
+
+            <RelativeLayout android:id="@+id/containerQRCodeUpload" android:layout_width="match_parent" android:layout_height="150dp" android:background="@drawable/image_upload_background" android:gravity="center" android:clickable="true" android:focusable="true" android:layout_marginBottom="16dp">
+
+                <LinearLayout android:id="@+id/placeholderQRCodeUpload" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center">
+
+                    <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@android:drawable/ic_menu_gallery" android:tint="#999999" android:clickable="false" android:focusable="false" />
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nhấn để chọn mã QR" android:textSize="12sp" android:textColor="#999999" android:layout_marginTop="8dp" android:clickable="false" android:focusable="false" />
+                </LinearLayout>
+
+                <ImageView android:id="@+id/imgQRCode" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" android:clickable="false" android:focusable="false" />
+            </RelativeLayout>
+
+            <!-- Share Link Section -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Link chia sẻ (Tùy chọn)" android:textSize="16sp" android:textStyle="bold" android:textColor="#111111" android:layout_marginBottom="8dp" />
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nhập link từ get-qr.com hoặc link tùy chỉnh để chia sẻ công thức (VD: https://get-qr.com/content/Zs_P8y)" android:textSize="12sp" android:textColor="#666666" android:layout_marginBottom="8dp" />
+
+            <EditText android:id="@+id/edtShareLink" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="VD: https://get-qr.com/content/Zs_P8y" android:textSize="15sp" android:textColor="#111111" android:background="@drawable/edit_text_background" android:padding="12dp" android:inputType="textUri" android:layout_marginBottom="24dp" />
 
             <!-- Dish Name -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tên món ăn" android:textSize="16sp" android:textStyle="bold" android:textColor="#111111" android:layout_marginBottom="8dp" />
