@@ -45,13 +45,64 @@ public class RecipeDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_detail);
 
-        // Get recipe ID
+        // Get recipe ID from intent extra or deep link
         recipeId = getIntent().getStringExtra("recipeId");
+        
+        // Handle deep link
         if (recipeId == null) {
-            Toast.makeText(this, "Không tìm thấy công thức", Toast.LENGTH_SHORT).show();
+            Intent intent = getIntent();
+            android.net.Uri data = intent.getData();
+            android.util.Log.d("RecipeDetailActivity", "=== DEEP LINK DEBUG ===");
+            android.util.Log.d("RecipeDetailActivity", "Intent action: " + intent.getAction());
+            android.util.Log.d("RecipeDetailActivity", "Intent data (URI): " + data);
+            
+            if (data != null) {
+                android.util.Log.d("RecipeDetailActivity", "Scheme: " + data.getScheme());
+                android.util.Log.d("RecipeDetailActivity", "Host: " + data.getHost());
+                android.util.Log.d("RecipeDetailActivity", "Path: " + data.getPath());
+                android.util.Log.d("RecipeDetailActivity", "Full URI string: " + data.toString());
+                
+                // Check if it's our deep link scheme
+                if ("prmrecipe".equals(data.getScheme()) && "recipe".equals(data.getHost())) {
+                    String path = data.getPath();
+                    android.util.Log.d("RecipeDetailActivity", "Deep link path: " + path);
+                    
+                    if (path != null && !path.isEmpty()) {
+                        // Remove leading slash if present
+                        if (path.startsWith("/")) {
+                            recipeId = path.substring(1);
+                        } else {
+                            recipeId = path;
+                        }
+                        android.util.Log.d("RecipeDetailActivity", "Recipe ID extracted: " + recipeId);
+                    } else {
+                        // Try to get from last path segment
+                        String lastSegment = data.getLastPathSegment();
+                        if (lastSegment != null) {
+                            recipeId = lastSegment;
+                            android.util.Log.d("RecipeDetailActivity", "Recipe ID from last segment: " + recipeId);
+                        }
+                    }
+                } else {
+                    android.util.Log.w("RecipeDetailActivity", "URI scheme/host không khớp. Expected: prmrecipe://recipe, Got: " + data.getScheme() + "://" + data.getHost());
+                }
+            } else {
+                android.util.Log.w("RecipeDetailActivity", "Intent data is null!");
+            }
+            android.util.Log.d("RecipeDetailActivity", "=== END DEEP LINK DEBUG ===");
+        } else {
+            android.util.Log.d("RecipeDetailActivity", "Recipe ID from intent extra: " + recipeId);
+        }
+        
+        if (recipeId == null || recipeId.isEmpty()) {
+            android.util.Log.e("RecipeDetailActivity", "Recipe ID is null or empty!");
+            android.util.Log.e("RecipeDetailActivity", "Intent: " + getIntent().toString());
+            Toast.makeText(this, "Không tìm thấy công thức. Recipe ID: " + (recipeId == null ? "null" : "empty"), Toast.LENGTH_LONG).show();
             finish();
             return;
         }
+        
+        android.util.Log.d("RecipeDetailActivity", "Final Recipe ID: " + recipeId);
 
         initViews();
         setupClickListeners();
@@ -106,10 +157,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
         });
 
         btnShare.setOnClickListener(v -> {
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, tvTitle.getText().toString());
-            startActivity(Intent.createChooser(shareIntent, "Chia sẻ công thức"));
+            String recipeTitle = tvTitle.getText().toString();
+            ShareRecipeDialog shareDialog = new ShareRecipeDialog(RecipeDetailActivity.this, recipeId, recipeTitle);
+            shareDialog.show();
         });
 
         // Tab navigation
@@ -189,15 +239,25 @@ public class RecipeDetailActivity extends AppCompatActivity {
     }
 
     private void loadRecipeDetail() {
+        android.util.Log.d("RecipeDetailActivity", "Loading recipe detail for ID: " + recipeId);
+        android.util.Log.d("RecipeDetailActivity", "Firebase path: recipes/" + recipeId);
+        
         recipeRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                android.util.Log.d("RecipeDetailActivity", "Firebase snapshot exists: " + snapshot.exists());
+                android.util.Log.d("RecipeDetailActivity", "Firebase snapshot key: " + snapshot.getKey());
+                
                 Recipe recipe = snapshot.getValue(Recipe.class);
                 if (recipe == null) {
-                    Toast.makeText(RecipeDetailActivity.this, "Không tìm thấy công thức", Toast.LENGTH_SHORT).show();
+                    android.util.Log.e("RecipeDetailActivity", "Recipe is null! Recipe ID: " + recipeId);
+                    android.util.Log.e("RecipeDetailActivity", "Snapshot value: " + snapshot.getValue());
+                    Toast.makeText(RecipeDetailActivity.this, "Không tìm thấy công thức với ID: " + recipeId, Toast.LENGTH_LONG).show();
                     finish();
                     return;
                 }
+                
+                android.util.Log.d("RecipeDetailActivity", "Recipe loaded successfully: " + recipe.title);
 
                 // Set basic info
                 tvTitle.setText(recipe.title);

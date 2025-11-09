@@ -17,7 +17,18 @@
             android:name=".activity.AuthActivity"
             android:exported="true" />
 
-        <activity android:name=".RecipeDetailActivity" />
+        <activity
+            android:name=".RecipeDetailActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="prmrecipe"
+                    android:host="recipe" />
+            </intent-filter>
+        </activity>
         <activity android:name=".RecipesListActivity" />
         <activity android:name=".MealPlanActivity" />
         <activity android:name=".CreateRecipeActivity" />
