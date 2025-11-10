@@ -63,7 +63,7 @@ public class RecipesListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipes_list);
 
-        // Configure status bar to show dark icons on light background
+        // Configure status bar to show light icons on dark background
         setupStatusBar();
 
         // Handle system window insets for status bar
@@ -72,10 +72,11 @@ public class RecipesListActivity extends AppCompatActivity {
             rootView.setOnApplyWindowInsetsListener((v, insets) -> {
                 int statusBarHeight = insets.getSystemWindowInsetTop();
                 LinearLayout headerLayout = findViewById(R.id.headerLayout);
-                if (headerLayout != null) {
+                if (headerLayout != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    // Adjust padding to account for status bar
                     headerLayout.setPadding(
                             headerLayout.getPaddingLeft(),
-                            statusBarHeight + 16,
+                            Math.max(statusBarHeight, (int) (24 * getResources().getDisplayMetrics().density)),
                             headerLayout.getPaddingRight(),
                             headerLayout.getPaddingBottom());
                 }
@@ -97,24 +98,24 @@ public class RecipesListActivity extends AppCompatActivity {
     }
 
     private void setupStatusBar() {
-        // Configure status bar to show dark icons on white background
-        // Set status bar background to white
-        getWindow().setStatusBarColor(Color.WHITE);
+        // Configure status bar to show light icons (white) on dark background
+        // Set status bar background to dark (to match header)
+        getWindow().setStatusBarColor(Color.parseColor("#0D0D1A"));
 
         // Use WindowInsetsControllerCompat for modern approach (API 23+)
         WindowInsetsControllerCompat windowInsetsController = WindowCompat.getInsetsController(getWindow(),
                 getWindow().getDecorView());
 
         if (windowInsetsController != null) {
-            // Show dark status bar icons (light status bar mode)
-            windowInsetsController.setAppearanceLightStatusBars(true);
+            // Show light status bar icons (white icons on dark background)
+            windowInsetsController.setAppearanceLightStatusBars(false);
         }
         // Fallback for older devices (API 23-29)
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             View decorView = getWindow().getDecorView();
             int flags = decorView.getSystemUiVisibility();
-            // Enable light status bar (dark icons)
-            flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            // Disable light status bar (keep white icons on dark background)
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
             decorView.setSystemUiVisibility(flags);
         }
     }

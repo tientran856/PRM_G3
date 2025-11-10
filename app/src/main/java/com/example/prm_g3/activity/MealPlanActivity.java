@@ -7,6 +7,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -15,8 +17,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.prm_g3.MealPlanManager;
 import com.example.prm_g3.R;
@@ -58,6 +63,27 @@ public class MealPlanActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_meal_plan);
 
+        // Configure status bar to show light icons (white) on dark background
+        setupStatusBar();
+
+        // Handle system window insets for status bar
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            rootView.setOnApplyWindowInsetsListener((v, insets) -> {
+                int statusBarHeight = insets.getSystemWindowInsetTop();
+                LinearLayout headerLayout = findViewById(R.id.headerLayout);
+                if (headerLayout != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    // Adjust padding to account for status bar
+                    headerLayout.setPadding(
+                            headerLayout.getPaddingLeft(),
+                            Math.max(statusBarHeight, (int) (24 * getResources().getDisplayMetrics().density)),
+                            headerLayout.getPaddingRight(),
+                            headerLayout.getPaddingBottom());
+                }
+                return insets;
+            });
+        }
+
         currentDate = Calendar.getInstance();
         selectedDate = (Calendar) currentDate.clone();
         mealPlanManager = new MealPlanManager(this);
@@ -67,6 +93,29 @@ public class MealPlanActivity extends AppCompatActivity {
         loadMealPlanForSelectedDate();
         setupBottomNav();
         setupFAB();
+    }
+
+    private void setupStatusBar() {
+        // Configure status bar to show light icons (white) on dark background
+        // Set status bar background to dark (to match header)
+        getWindow().setStatusBarColor(Color.parseColor("#0D0D1A"));
+
+        // Use WindowInsetsControllerCompat for modern approach (API 23+)
+        WindowInsetsControllerCompat windowInsetsController = WindowCompat.getInsetsController(getWindow(),
+                getWindow().getDecorView());
+
+        if (windowInsetsController != null) {
+            // Show light status bar icons (white icons on dark background)
+            windowInsetsController.setAppearanceLightStatusBars(false);
+        }
+        // Fallback for older devices (API 23-29)
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            View decorView = getWindow().getDecorView();
+            int flags = decorView.getSystemUiVisibility();
+            // Disable light status bar (keep white icons on dark background)
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            decorView.setSystemUiVisibility(flags);
+        }
     }
 
     private void initViews() {
@@ -141,19 +190,19 @@ public class MealPlanActivity extends AppCompatActivity {
 
     private void setupMealCategories() {
         adapter = new MealCategoryAdapter(this, mealCategories);
-        
+
         // 设置添加食谱监听器
         adapter.setOnAddRecipeClickListener(mealCategoryName -> {
             showSelectRecipeDialog(mealCategoryName);
         });
-        
+
         // 设置删除食谱监听器
         adapter.setOnRemoveRecipeClickListener((mealCategoryName, recipeIndex) -> {
             mealPlanManager.removeRecipeFromMeal(selectedDate, mealCategoryName, recipeIndex);
             loadMealPlanForSelectedDate();
             Toast.makeText(this, "Đã xóa món ăn", Toast.LENGTH_SHORT).show();
         });
-        
+
         rvMealCategories.setLayoutManager(new LinearLayoutManager(this));
         rvMealCategories.setAdapter(adapter);
     }
@@ -175,8 +224,8 @@ public class MealPlanActivity extends AppCompatActivity {
         List<String> recipeIds = new ArrayList<>();
         List<Recipe> filteredRecipes = new ArrayList<>();
         List<String> filteredIds = new ArrayList<>();
-        final String[] selectedRecipeId = {null};
-        final Recipe[] selectedRecipe = {null};
+        final String[] selectedRecipeId = { null };
+        final Recipe[] selectedRecipe = { null };
 
         RecipeGridAdapter recipeAdapter = new RecipeGridAdapter(this, filteredRecipes, filteredIds);
         recipeAdapter.setOnRecipeClickListener((recipe, recipeId) -> {
@@ -192,13 +241,13 @@ public class MealPlanActivity extends AppCompatActivity {
         // 加载所有食谱
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference recipesRef = database.getReference("recipes");
-        
+
         recipesRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(com.google.firebase.database.DataSnapshot snapshot) {
                 allRecipes.clear();
                 recipeIds.clear();
-                
+
                 for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
                     try {
                         Recipe r = data.getValue(Recipe.class);
@@ -207,11 +256,12 @@ public class MealPlanActivity extends AppCompatActivity {
                             recipeIds.add(data.getKey());
                         }
                     } catch (Exception e) {
-                        android.util.Log.e("MealPlanActivity", "Error parsing recipe: " + data.getKey() + " - " + e.getMessage(), e);
+                        android.util.Log.e("MealPlanActivity",
+                                "Error parsing recipe: " + data.getKey() + " - " + e.getMessage(), e);
                         // Skip this recipe and continue with others
                     }
                 }
-                
+
                 filteredRecipes.clear();
                 filteredIds.clear();
                 filteredRecipes.addAll(allRecipes);
@@ -221,21 +271,23 @@ public class MealPlanActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError error) {
-                Toast.makeText(MealPlanActivity.this, "Lỗi tải dữ liệu: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MealPlanActivity.this, "Lỗi tải dữ liệu: " + error.getMessage(), Toast.LENGTH_SHORT)
+                        .show();
             }
         });
 
         // 搜索功能
         edtSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String query = s.toString().toLowerCase();
                 filteredRecipes.clear();
                 filteredIds.clear();
-                
+
                 if (query.isEmpty()) {
                     filteredRecipes.addAll(allRecipes);
                     filteredIds.addAll(recipeIds);
@@ -252,7 +304,8 @@ public class MealPlanActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         btnCancel.setOnClickListener(v -> dialog.dismiss());
