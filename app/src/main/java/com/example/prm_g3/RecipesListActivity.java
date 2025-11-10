@@ -19,7 +19,10 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.graphics.Color;
+import android.os.Build;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.prm_g3.activity.CreateRecipeActivity;
 import com.example.prm_g3.activity.FavoritesActivity;
@@ -60,6 +63,9 @@ public class RecipesListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipes_list);
 
+        // Configure status bar to show dark icons on light background
+        setupStatusBar();
+
         // Handle system window insets for status bar
         View rootView = findViewById(android.R.id.content);
         if (rootView != null) {
@@ -88,6 +94,29 @@ public class RecipesListActivity extends AppCompatActivity {
         setupBottomNav();
         setupCreateButton();
         setupFilterButton();
+    }
+
+    private void setupStatusBar() {
+        // Configure status bar to show dark icons on white background
+        // Set status bar background to white
+        getWindow().setStatusBarColor(Color.WHITE);
+
+        // Use WindowInsetsControllerCompat for modern approach (API 23+)
+        WindowInsetsControllerCompat windowInsetsController = WindowCompat.getInsetsController(getWindow(),
+                getWindow().getDecorView());
+
+        if (windowInsetsController != null) {
+            // Show dark status bar icons (light status bar mode)
+            windowInsetsController.setAppearanceLightStatusBars(true);
+        }
+        // Fallback for older devices (API 23-29)
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            View decorView = getWindow().getDecorView();
+            int flags = decorView.getSystemUiVisibility();
+            // Enable light status bar (dark icons)
+            flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            decorView.setSystemUiVisibility(flags);
+        }
     }
 
     private void initViews() {
