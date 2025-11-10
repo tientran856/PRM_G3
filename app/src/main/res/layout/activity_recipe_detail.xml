@@ -410,11 +410,19 @@
                             android:textStyle="bold" />
 
                         <!-- Comments List -->
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/recyclerComments"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:nestedScrollingEnabled="false" />
+
+                        <!-- Keep old commentsList for backward compatibility -->
                         <LinearLayout
                             android:id="@+id/commentsList"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical" />
+                            android:orientation="vertical"
+                            android:visibility="gone" />
                     </LinearLayout>
                 </FrameLayout>
             </LinearLayout>

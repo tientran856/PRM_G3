@@ -2,6 +2,8 @@ package com.example.prm_g3.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,12 +22,17 @@ import com.example.prm_g3.FavoritesManager;
 import com.example.prm_g3.R;
 import com.example.prm_g3.ShareRecipeDialog;
 import com.example.prm_g3.UserManager;
+import com.example.prm_g3.adapters.CommentAdapter;
+import com.example.prm_g3.models.Comment;
 import com.example.prm_g3.models.Recipe;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecipeDetailActivity extends AppCompatActivity {
 
@@ -39,6 +46,12 @@ public class RecipeDetailActivity extends AppCompatActivity {
     private Button btnSubmitReview;
     private ImageButton star1, star2, star3, star4, star5;
     private int selectedRating = 0;
+
+    // RecyclerView for comments
+    private RecyclerView recyclerComments;
+    private CommentAdapter commentAdapter;
+    private List<Comment> commentList;
+    private List<String> commentIdList;
 
     private DatabaseReference recipeRef;
     private String recipeId;
@@ -142,6 +155,20 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
         recipeRef = FirebaseDatabase.getInstance().getReference("recipes").child(recipeId);
         favoritesManager = new FavoritesManager(this);
+
+        // Initialize RecyclerView for comments
+        recyclerComments = findViewById(R.id.recyclerComments);
+        commentList = new ArrayList<>();
+        commentIdList = new ArrayList<>();
+
+        commentAdapter = new CommentAdapter(this, commentList, commentIdList, recipeId);
+        commentAdapter.setOnCommentUpdateListener(() -> {
+            // Reload comments when updated
+            loadComments();
+        });
+
+        recyclerComments.setLayoutManager(new LinearLayoutManager(this));
+        recyclerComments.setAdapter(commentAdapter);
     }
 
     private void setupClickListeners() {
@@ -401,117 +428,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
                     }
                 }
 
-                // Load comments
-                DataSnapshot commentsSnap = snapshot.child("comments");
-                commentsList.removeAllViews();
-                int commentCount = 0;
-                for (DataSnapshot cmt : commentsSnap.getChildren()) {
-                    String userName = cmt.child("user_name").getValue(String.class);
-                    String content = cmt.child("content").getValue(String.class);
-                    Long rating = cmt.child("rating").getValue(Long.class);
-                    String createdAt = cmt.child("created_at").getValue(String.class);
-                    String timeAgo = formatTimeAgo(createdAt);
-
-                    if (content != null && rating != null) {
-                        // Main comment container
-                        LinearLayout commentContainer = new LinearLayout(RecipeDetailActivity.this);
-                        commentContainer.setOrientation(LinearLayout.VERTICAL);
-                        commentContainer.setPadding(0, 16, 0, 16);
-
-                        // Top row: Avatar + Name + Rating, Time on right
-                        RelativeLayout topRow = new RelativeLayout(RecipeDetailActivity.this);
-                        topRow.setPadding(0, 0, 0, 8);
-
-                        // Avatar
-                        ImageView avatar = new ImageView(RecipeDetailActivity.this);
-                        avatar.setId(View.generateViewId());
-                        avatar.setImageResource(android.R.drawable.ic_menu_gallery);
-                        avatar.setBackgroundResource(android.R.drawable.ic_menu_gallery);
-                        avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        avatar.setPadding(2, 2, 2, 2);
-                        RelativeLayout.LayoutParams avatarParams = new RelativeLayout.LayoutParams(40, 40);
-                        avatarParams.addRule(RelativeLayout.ALIGN_PARENT_START);
-                        avatarParams.addRule(RelativeLayout.CENTER_VERTICAL);
-                        avatarParams.setMargins(0, 0, 12, 0);
-                        avatar.setLayoutParams(avatarParams);
-                        topRow.addView(avatar);
-
-                        // Name and info column
-                        LinearLayout infoColumn = new LinearLayout(RecipeDetailActivity.this);
-                        infoColumn.setId(View.generateViewId());
-                        infoColumn.setOrientation(LinearLayout.VERTICAL);
-                        RelativeLayout.LayoutParams infoParams = new RelativeLayout.LayoutParams(
-                                RelativeLayout.LayoutParams.WRAP_CONTENT,
-                                RelativeLayout.LayoutParams.WRAP_CONTENT);
-                        infoParams.addRule(RelativeLayout.RIGHT_OF, avatar.getId());
-                        infoParams.addRule(RelativeLayout.CENTER_VERTICAL);
-                        infoColumn.setLayoutParams(infoParams);
-
-                        // Name
-                        TextView tvName = new TextView(RecipeDetailActivity.this);
-                        tvName.setText(userName != null ? userName : "Người dùng");
-                        tvName.setTextSize(15);
-                        tvName.setTypeface(null, android.graphics.Typeface.BOLD);
-                        tvName.setTextColor(0xFF111111);
-                        infoColumn.addView(tvName);
-
-                        // Rating stars
-                        LinearLayout ratingRow = new LinearLayout(RecipeDetailActivity.this);
-                        ratingRow.setOrientation(LinearLayout.HORIZONTAL);
-                        for (int i = 0; i < 5; i++) {
-                            ImageView star = new ImageView(RecipeDetailActivity.this);
-                            if (i < rating) {
-                                star.setImageResource(android.R.drawable.star_big_on);
-                                star.setColorFilter(0xFFFFD700);
-                            } else {
-                                star.setImageResource(android.R.drawable.star_big_off);
-                                star.setColorFilter(0xFFCCCCCC);
-                            }
-                            star.setLayoutParams(new LinearLayout.LayoutParams(16, 16));
-                            ratingRow.addView(star);
-                        }
-                        infoColumn.addView(ratingRow);
-                        topRow.addView(infoColumn);
-
-                        // Time on right
-                        TextView tvTime = new TextView(RecipeDetailActivity.this);
-                        tvTime.setText(timeAgo != null ? timeAgo : "");
-                        tvTime.setTextSize(12);
-                        tvTime.setTextColor(0xFF999999);
-                        RelativeLayout.LayoutParams timeParams = new RelativeLayout.LayoutParams(
-                                RelativeLayout.LayoutParams.WRAP_CONTENT,
-                                RelativeLayout.LayoutParams.WRAP_CONTENT);
-                        timeParams.addRule(RelativeLayout.ALIGN_PARENT_END);
-                        timeParams.addRule(RelativeLayout.CENTER_VERTICAL);
-                        tvTime.setLayoutParams(timeParams);
-                        topRow.addView(tvTime);
-
-                        commentContainer.addView(topRow);
-
-                        // Comment text
-                        TextView tvComment = new TextView(RecipeDetailActivity.this);
-                        tvComment.setText(content);
-                        tvComment.setTextSize(14);
-                        tvComment.setTextColor(0xFF333333);
-                        tvComment.setPadding(52, 0, 0, 0);
-                        commentContainer.addView(tvComment);
-
-                        // Add separator line
-                        View separator = new View(RecipeDetailActivity.this);
-                        separator.setBackgroundColor(0xFFEEEEEE);
-                        LinearLayout.LayoutParams sepParams = new LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.MATCH_PARENT, 1);
-                        sepParams.setMargins(0, 16, 0, 0);
-                        separator.setLayoutParams(sepParams);
-                        commentContainer.addView(separator);
-
-                        commentsList.addView(commentContainer);
-                        commentCount++;
-                    }
-                }
-
-                // Update rating text with comment count
-                tvRating.setText(String.format("%.1f (%d đánh giá)", recipe.rating, commentCount));
+                // Load comments using RecyclerView
+                loadComments();
 
                 // Switch to ingredients tab by default
                 switchTab(0);
@@ -623,5 +541,77 @@ public class RecipeDetailActivity extends AppCompatActivity {
         } catch (Exception e) {
             return "Vừa xong";
         }
+    }
+
+    private void loadComments() {
+        recipeRef.child("comments").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                commentList.clear();
+                commentIdList.clear();
+                final int[] commentCount = {0}; // Use final array to make it effectively final
+
+                for (DataSnapshot commentSnapshot : snapshot.getChildren()) {
+                    String commentId = commentSnapshot.getKey();
+                    String userId = commentSnapshot.child("user_id").getValue(String.class);
+                    String userName = commentSnapshot.child("user_name").getValue(String.class);
+                    String content = commentSnapshot.child("content").getValue(String.class);
+                    Long rating = commentSnapshot.child("rating").getValue(Long.class);
+                    String createdAt = commentSnapshot.child("created_at").getValue(String.class);
+
+                    if (content != null && rating != null && commentId != null) {
+                        Comment comment = new Comment();
+                        comment.id = commentId;
+                        comment.content = content;
+                        comment.user_name = userName != null ? userName : "Người dùng";
+                        comment.user_id = userId != null ? userId : "user_002";
+                        comment.author_name = comment.user_name;
+                        comment.author_id = comment.user_id;
+                        comment.rating = rating.intValue();
+                        comment.created_at = createdAt;
+
+                        // Convert created_at to timestamp for proper sorting
+                        try {
+                            if (createdAt != null) {
+                                java.text.SimpleDateFormat iso = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault());
+                                java.util.Date date = iso.parse(createdAt);
+                                comment.timestamp = date.getTime();
+                            } else {
+                                comment.timestamp = System.currentTimeMillis();
+                            }
+                        } catch (Exception e) {
+                            comment.timestamp = System.currentTimeMillis();
+                        }
+
+                        commentList.add(comment);
+                        commentIdList.add(commentId);
+                        commentCount[0]++;
+                    }
+                }
+
+                // Update rating display with comment count
+                recipeRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot recipeSnapshot) {
+                        Recipe recipe = recipeSnapshot.getValue(Recipe.class);
+                        if (recipe != null) {
+                            tvRating.setText(String.format("%.1f (%d đánh giá)", recipe.rating, commentCount[0]));
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        // Handle error if needed
+                    }
+                });
+
+                commentAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(RecipeDetailActivity.this, "Lỗi tải bình luận: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
