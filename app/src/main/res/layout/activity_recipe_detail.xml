@@ -60,7 +60,7 @@
                         android:background="@drawable/bg_circle_translucent"
                         android:contentDescription="Favorite"
                         android:scaleType="center"
-                        android:src="@drawable/ic_heart_white" />
+                        android:src="@drawable/ic_heart_selector_white" />
 
                     <ImageButton
                         android:id="@+id/btnShare"

@@ -33,7 +33,7 @@
                 android:layout_alignParentTop="true"
                 android:layout_margin="10dp"
                 android:background="@drawable/favorite_button_bg"
-                android:src="@drawable/ic_heart_outline"
+                android:src="@drawable/ic_heart_selector"
                 android:padding="8dp"
                 android:clickable="true"
                 android:focusable="true"

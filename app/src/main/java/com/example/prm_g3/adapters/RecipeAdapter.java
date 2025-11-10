@@ -112,6 +112,21 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder
 
         String recipeId = recipeIds.get(position);
 
+        // Set favorite state
+        boolean isFavorite = favoritesManager.isFavorite(recipeId);
+        holder.btnFavorite.setSelected(isFavorite);
+
+        // Favorite button click listener
+        holder.btnFavorite.setOnClickListener(v -> {
+            boolean currentFavoriteState = favoritesManager.isFavorite(recipeId);
+            if (currentFavoriteState) {
+                favoritesManager.removeFromFavorites(recipeId);
+            } else {
+                favoritesManager.addToFavorites(recipeId);
+            }
+            holder.btnFavorite.setSelected(!currentFavoriteState);
+        });
+
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, RecipeDetailActivity.class);
             intent.putExtra("recipeId", recipeId);

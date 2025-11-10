@@ -90,17 +90,19 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
                 .placeholder(R.drawable.ic_home)
                 .into(holder.imgRecipe);
 
-        // Update favorite button state
-        updateFavoriteButton(holder.btnFavorite, recipeId);
+        // Set favorite state
+        boolean isFavorite = favoritesManager.isFavorite(recipeId);
+        holder.btnFavorite.setSelected(isFavorite);
 
         // Set favorite button click listener
         holder.btnFavorite.setOnClickListener(v -> {
-            if (favoritesManager.isFavorite(recipeId)) {
+            boolean currentFavoriteState = favoritesManager.isFavorite(recipeId);
+            if (currentFavoriteState) {
                 favoritesManager.removeFromFavorites(recipeId);
             } else {
                 favoritesManager.addToFavorites(recipeId);
             }
-            updateFavoriteButton(holder.btnFavorite, recipeId);
+            holder.btnFavorite.setSelected(!currentFavoriteState);
             if (onFavoriteChangeListener != null) {
                 onFavoriteChangeListener.onFavoriteChanged();
             }
@@ -124,15 +126,7 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
         return recipes.size();
     }
 
-    private void updateFavoriteButton(ImageView btnFavorite, String recipeId) {
-        if (favoritesManager.isFavorite(recipeId)) {
-            btnFavorite.setImageResource(R.drawable.ic_heart_filled);
-            btnFavorite.setColorFilter(0xFFFF6B6B); // Red color for favorited
-        } else {
-            btnFavorite.setImageResource(R.drawable.ic_heart_outline);
-            btnFavorite.setColorFilter(0xFF666666); // Gray color for not favorited
-        }
-    }
+
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgRecipe, btnFavorite;

@@ -83,8 +83,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        setupUserGreeting(); // Refresh greeting when coming back to main activity
-        // Refresh favorites for current user
+        // Refresh favorites when returning to main activity
         if (adapter != null) {
             adapter.refreshFavorites();
         }
