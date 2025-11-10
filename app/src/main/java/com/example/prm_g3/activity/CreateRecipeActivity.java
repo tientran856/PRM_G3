@@ -150,13 +150,40 @@ public class CreateRecipeActivity extends AppCompatActivity {
 
     private void addStepRow() {
         View row = getLayoutInflater().inflate(R.layout.item_step_input, containerSteps, false);
+
+        // Calculate step number (current count + 1)
+        int stepNumber = stepViews.size() + 1;
+
+        // Update step number TextView
+        TextView tvStepNumber = row.findViewById(R.id.tvStepNumber);
+        tvStepNumber.setText(String.valueOf(stepNumber));
+
+        // Update step description hint
+        EditText edtStepDescription = row.findViewById(R.id.edtStepDescription);
+        edtStepDescription.setHint("Bước " + stepNumber);
+
         ImageButton btnRemove = row.findViewById(R.id.btnRemoveStep);
         btnRemove.setOnClickListener(v -> {
             containerSteps.removeView(row);
             stepViews.remove(row);
+            // Update step numbers after removal
+            updateStepNumbers();
         });
+
         containerSteps.addView(row);
         stepViews.add(row);
+    }
+
+    private void updateStepNumbers() {
+        for (int i = 0; i < stepViews.size(); i++) {
+            View stepView = stepViews.get(i);
+            TextView tvStepNumber = stepView.findViewById(R.id.tvStepNumber);
+            EditText edtStepDescription = stepView.findViewById(R.id.edtStepDescription);
+
+            int stepNumber = i + 1;
+            tvStepNumber.setText(String.valueOf(stepNumber));
+            edtStepDescription.setHint("Bước " + stepNumber);
+        }
     }
 
     @Override
