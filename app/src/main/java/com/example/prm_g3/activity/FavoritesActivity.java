@@ -1,4 +1,4 @@
-package com.example.prm_g3;
+package com.example.prm_g3.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -7,16 +7,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.prm_g3.FavoritesManager;
+import com.example.prm_g3.R;
+import com.example.prm_g3.RecipesListActivity;
 import com.example.prm_g3.adapters.RecipeGridAdapter;
 import com.example.prm_g3.models.Recipe;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;

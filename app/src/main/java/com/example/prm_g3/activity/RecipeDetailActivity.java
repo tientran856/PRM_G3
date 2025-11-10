@@ -1,4 +1,4 @@
-package com.example.prm_g3;
+package com.example.prm_g3.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +16,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.prm_g3.FavoritesManager;
+import com.example.prm_g3.R;
+import com.example.prm_g3.ShareRecipeDialog;
+import com.example.prm_g3.UserManager;
 import com.example.prm_g3.models.Recipe;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -248,7 +252,16 @@ public class RecipeDetailActivity extends AppCompatActivity {
                 android.util.Log.d("RecipeDetailActivity", "Firebase snapshot exists: " + snapshot.exists());
                 android.util.Log.d("RecipeDetailActivity", "Firebase snapshot key: " + snapshot.getKey());
                 
-                Recipe recipe = snapshot.getValue(Recipe.class);
+                Recipe recipe = null;
+                try {
+                    recipe = snapshot.getValue(Recipe.class);
+                } catch (Exception e) {
+                    android.util.Log.e("RecipeDetailActivity", "Error parsing recipe: " + e.getMessage(), e);
+                    Toast.makeText(RecipeDetailActivity.this, "Lỗi đọc dữ liệu công thức: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    finish();
+                    return;
+                }
+                
                 if (recipe == null) {
                     android.util.Log.e("RecipeDetailActivity", "Recipe is null! Recipe ID: " + recipeId);
                     android.util.Log.e("RecipeDetailActivity", "Snapshot value: " + snapshot.getValue());

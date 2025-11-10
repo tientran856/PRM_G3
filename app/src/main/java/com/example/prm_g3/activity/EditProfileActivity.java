@@ -1,4 +1,4 @@
-package com.example.prm_g3;
+package com.example.prm_g3.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,6 +11,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.example.prm_g3.R;
+import com.example.prm_g3.UserManager;
 import com.example.prm_g3.models.User;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;

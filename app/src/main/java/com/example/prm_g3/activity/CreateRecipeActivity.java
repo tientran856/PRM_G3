@@ -1,4 +1,4 @@
-package com.example.prm_g3;
+package com.example.prm_g3.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -17,12 +17,22 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.prm_g3.R;
 import com.example.prm_g3.models.Recipe;
+import com.example.prm_g3.models.Ingredient;
+import com.example.prm_g3.models.Step;
+import com.example.prm_g3.UserManager;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class CreateRecipeActivity extends AppCompatActivity {
 
@@ -207,19 +217,83 @@ public class CreateRecipeActivity extends AppCompatActivity {
             }
         }
 
-        // Create recipe object
+        // Parse servings
+        int servings = 1;
+        try {
+            String servingsStr = edtServings.getText().toString().trim();
+            if (!servingsStr.isEmpty()) {
+                servings = Integer.parseInt(servingsStr);
+            }
+        } catch (NumberFormatException e) {
+            servings = 1;
+        }
+
+        // Generate recipe ID - use Firebase push key format
+        DatabaseReference recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
+        String recipeId = recipesRef.push().getKey();
+        String currentTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).format(new Date());
+        String authorId = UserManager.getInstance().getCurrentUserId();
+
+        // Create Recipe object with nested ingredients and steps
         Recipe recipe = new Recipe();
         recipe.title = edtTitle.getText().toString().trim();
         recipe.description = edtDescription.getText().toString().trim();
+        recipe.category = ""; // Can be added later with a category selector
+        recipe.tags = ""; // Can be added later with tags input
         recipe.prep_time = prepTime;
-        recipe.cook_time = 0;
+        recipe.cook_time = cookTime;
+        recipe.servings = servings;
         recipe.difficulty = spinnerDifficulty.getSelectedItem().toString();
         recipe.rating = 0.0;
-        recipe.image_url = imageUri.toString(); // In production, upload to Firebase Storage first
+        recipe.total_reviews = 0;
+        recipe.image_url = imageUri != null ? imageUri.toString() : "";
+        recipe.video_url = "";
+        recipe.author_id = authorId != null ? authorId : "";
+        recipe.created_at = currentTime;
+        recipe.updated_at = currentTime;
+        recipe.sync_status = 0;
 
-        // Save to Firebase
-        DatabaseReference recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
-        String recipeId = recipesRef.push().getKey();
+        // Create nested ingredients map
+        Map<String, Ingredient> ingredientsMap = new HashMap<>();
+        int ingIndex = 1;
+        for (View view : ingredientViews) {
+            EditText edtName = view.findViewById(R.id.edtIngredientName);
+            EditText edtQuantity = view.findViewById(R.id.edtIngredientQuantity);
+            String name = edtName.getText().toString().trim();
+            String quantity = edtQuantity.getText().toString().trim();
+            if (!name.isEmpty() && !quantity.isEmpty()) {
+                Ingredient ingredient = new Ingredient();
+                ingredient.name = name;
+                ingredient.quantity = quantity;
+                ingredient.sync_status = 0;
+                // Use key format: ing_001, ing_002, etc.
+                String ingKey = "ing_" + String.format("%03d", ingIndex++);
+                ingredientsMap.put(ingKey, ingredient);
+            }
+        }
+        recipe.ingredients = ingredientsMap;
+
+        // Create nested steps map
+        Map<String, Step> stepsMap = new HashMap<>();
+        int stepIndex = 1;
+        for (int i = 0; i < stepViews.size(); i++) {
+            View view = stepViews.get(i);
+            EditText edtStep = view.findViewById(R.id.edtStepDescription);
+            String instruction = edtStep.getText().toString().trim();
+            if (!instruction.isEmpty()) {
+                Step step = new Step();
+                step.step_number = stepIndex;
+                step.instruction = instruction;
+                step.image_url = "";
+                step.sync_status = 0;
+                // Use key format: step_001, step_002, etc.
+                String stepKey = "step_" + String.format("%03d", stepIndex++);
+                stepsMap.put(stepKey, step);
+            }
+        }
+        recipe.steps = stepsMap;
+
+        // Save to Firebase with nested structure
         recipesRef.child(recipeId).setValue(recipe)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Đã lưu công thức thành công", Toast.LENGTH_SHORT).show();
@@ -227,6 +301,8 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Lỗi lưu công thức: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    android.util.Log.e("CreateRecipeActivity", "Error saving recipe: " + e.getMessage(), e);
                 });
     }
+
 }

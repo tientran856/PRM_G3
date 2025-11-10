@@ -1,4 +1,4 @@
-package com.example.prm_g3;
+package com.example.prm_g3.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -11,10 +11,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.prm_g3.activity.AuthActivity;
+import com.example.prm_g3.R;
+import com.example.prm_g3.RecipesListActivity;
+import com.example.prm_g3.UserManager;
 import com.example.prm_g3.models.User;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;

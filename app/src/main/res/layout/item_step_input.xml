@@ -1,10 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="12dp">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
 
-    <TextView android:id="@+id/tvStepNumber" android:layout_width="32dp" android:layout_height="32dp" android:text="1" android:textSize="16sp" android:textStyle="bold" android:textColor="#FFFFFF" android:background="#000000" android:gravity="center" android:layout_marginEnd="12dp" />
+    <TextView
+        android:id="@+id/tvStepNumber"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="12dp"
+        android:background="#000000"
+        android:gravity="center"
+        android:text="1"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
-    <EditText android:id="@+id/edtStepDescription" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="Bước 1" android:textSize="15sp" android:textColor="#111111" android:background="@drawable/edit_text_background" android:padding="12dp" android:layout_marginEnd="8dp" />
+    <EditText
+        android:id="@+id/edtStepDescription"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/edit_text_background"
+        android:hint="Bước 1"
+        android:padding="12dp"
+        android:textColor="#111111"
+        android:textSize="15sp" />
 
-    <ImageButton android:id="@+id/btnRemoveStep" android:layout_width="40dp" android:layout_height="40dp" android:background="@android:color/transparent" android:src="@android:drawable/ic_menu_close_clear_cancel" android:tint="#000000" android:contentDescription="Remove" />
+    <ImageButton
+        android:id="@+id/btnRemoveStep"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="Remove"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        app:tint="#000000" />
 </LinearLayout>
 
