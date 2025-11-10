@@ -8,7 +8,7 @@
         <!-- Title and Create Button -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#0D0D1A" android:gravity="center_vertical" android:orientation="horizontal" android:padding="16dp">
 
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Công thức" android:textColor="#FFFFFF" android:textSize="24sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tvTitle" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Công thức" android:textColor="#FFFFFF" android:textSize="24sp" android:textStyle="bold" />
 
             <Button android:id="@+id/btnCreateNew" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="#9C27B0" android:drawableStart="@drawable/ic_add" android:drawablePadding="6dp" android:drawableTint="#FFFFFF" android:gravity="center_vertical" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:text="+ Tạo mới" android:textColor="#FFFFFF" android:textSize="14sp" />
         </LinearLayout>

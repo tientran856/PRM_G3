@@ -25,6 +25,7 @@ import com.example.prm_g3.UserManager;
 import com.example.prm_g3.adapters.CommentAdapter;
 import com.example.prm_g3.models.Comment;
 import com.example.prm_g3.models.Recipe;
+import com.example.prm_g3.models.User;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -40,6 +41,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
     private ImageButton btnBack, btnFavorite, btnShare;
     private TextView tvTitle, tvDescription, tvRating, tvTime, tvServings, tvDifficulty;
     private TextView tabIngredients, tabSteps, tabComments;
+    private LinearLayout authorInfoLayout;
+    private de.hdodenhof.circleimageview.CircleImageView imgAuthorAvatar;
+    private TextView tvAuthorName;
     private LinearLayout containerIngredients, containerSteps, containerComments, commentsList;
     private LinearLayout containerTags;
     private EditText edtComment;
@@ -64,7 +68,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
         // Get recipe ID from intent extra or deep link
         recipeId = getIntent().getStringExtra("recipeId");
-        
+
         // Handle deep link
         if (recipeId == null) {
             Intent intent = getIntent();
@@ -72,18 +76,18 @@ public class RecipeDetailActivity extends AppCompatActivity {
             android.util.Log.d("RecipeDetailActivity", "=== DEEP LINK DEBUG ===");
             android.util.Log.d("RecipeDetailActivity", "Intent action: " + intent.getAction());
             android.util.Log.d("RecipeDetailActivity", "Intent data (URI): " + data);
-            
+
             if (data != null) {
                 android.util.Log.d("RecipeDetailActivity", "Scheme: " + data.getScheme());
                 android.util.Log.d("RecipeDetailActivity", "Host: " + data.getHost());
                 android.util.Log.d("RecipeDetailActivity", "Path: " + data.getPath());
                 android.util.Log.d("RecipeDetailActivity", "Full URI string: " + data.toString());
-                
+
                 // Check if it's our deep link scheme
                 if ("prmrecipe".equals(data.getScheme()) && "recipe".equals(data.getHost())) {
                     String path = data.getPath();
                     android.util.Log.d("RecipeDetailActivity", "Deep link path: " + path);
-                    
+
                     if (path != null && !path.isEmpty()) {
                         // Remove leading slash if present
                         if (path.startsWith("/")) {
@@ -101,7 +105,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
                         }
                     }
                 } else {
-                    android.util.Log.w("RecipeDetailActivity", "URI scheme/host không khớp. Expected: prmrecipe://recipe, Got: " + data.getScheme() + "://" + data.getHost());
+                    android.util.Log.w("RecipeDetailActivity",
+                            "URI scheme/host không khớp. Expected: prmrecipe://recipe, Got: " + data.getScheme() + "://"
+                                    + data.getHost());
                 }
             } else {
                 android.util.Log.w("RecipeDetailActivity", "Intent data is null!");
@@ -110,15 +116,16 @@ public class RecipeDetailActivity extends AppCompatActivity {
         } else {
             android.util.Log.d("RecipeDetailActivity", "Recipe ID from intent extra: " + recipeId);
         }
-        
+
         if (recipeId == null || recipeId.isEmpty()) {
             android.util.Log.e("RecipeDetailActivity", "Recipe ID is null or empty!");
             android.util.Log.e("RecipeDetailActivity", "Intent: " + getIntent().toString());
-            Toast.makeText(this, "Không tìm thấy công thức. Recipe ID: " + (recipeId == null ? "null" : "empty"), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Không tìm thấy công thức. Recipe ID: " + (recipeId == null ? "null" : "empty"),
+                    Toast.LENGTH_LONG).show();
             finish();
             return;
         }
-        
+
         android.util.Log.d("RecipeDetailActivity", "Final Recipe ID: " + recipeId);
 
         initViews();
@@ -152,6 +159,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
         star3 = findViewById(R.id.star3);
         star4 = findViewById(R.id.star4);
         star5 = findViewById(R.id.star5);
+        authorInfoLayout = findViewById(R.id.authorInfoLayout);
+        imgAuthorAvatar = findViewById(R.id.imgAuthorAvatar);
+        tvAuthorName = findViewById(R.id.tvAuthorName);
 
         recipeRef = FirebaseDatabase.getInstance().getReference("recipes").child(recipeId);
         favoritesManager = new FavoritesManager(this);
@@ -182,8 +192,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
         btnFavorite.setOnClickListener(v -> {
             favoritesManager.toggleFavorite(recipeId);
             updateFavoriteButton();
-            String message = favoritesManager.isFavorite(recipeId) ?
-                "Đã thêm vào yêu thích" : "Đã xóa khỏi yêu thích";
+            String message = favoritesManager.isFavorite(recipeId) ? "Đã thêm vào yêu thích" : "Đã xóa khỏi yêu thích";
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         });
 
@@ -272,31 +281,33 @@ public class RecipeDetailActivity extends AppCompatActivity {
     private void loadRecipeDetail() {
         android.util.Log.d("RecipeDetailActivity", "Loading recipe detail for ID: " + recipeId);
         android.util.Log.d("RecipeDetailActivity", "Firebase path: recipes/" + recipeId);
-        
+
         recipeRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 android.util.Log.d("RecipeDetailActivity", "Firebase snapshot exists: " + snapshot.exists());
                 android.util.Log.d("RecipeDetailActivity", "Firebase snapshot key: " + snapshot.getKey());
-                
+
                 Recipe recipe = null;
                 try {
                     recipe = snapshot.getValue(Recipe.class);
                 } catch (Exception e) {
                     android.util.Log.e("RecipeDetailActivity", "Error parsing recipe: " + e.getMessage(), e);
-                    Toast.makeText(RecipeDetailActivity.this, "Lỗi đọc dữ liệu công thức: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(RecipeDetailActivity.this, "Lỗi đọc dữ liệu công thức: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
                     finish();
                     return;
                 }
-                
+
                 if (recipe == null) {
                     android.util.Log.e("RecipeDetailActivity", "Recipe is null! Recipe ID: " + recipeId);
                     android.util.Log.e("RecipeDetailActivity", "Snapshot value: " + snapshot.getValue());
-                    Toast.makeText(RecipeDetailActivity.this, "Không tìm thấy công thức với ID: " + recipeId, Toast.LENGTH_LONG).show();
+                    Toast.makeText(RecipeDetailActivity.this, "Không tìm thấy công thức với ID: " + recipeId,
+                            Toast.LENGTH_LONG).show();
                     finish();
                     return;
                 }
-                
+
                 android.util.Log.d("RecipeDetailActivity", "Recipe loaded successfully: " + recipe.title);
 
                 // Set basic info
@@ -333,6 +344,15 @@ public class RecipeDetailActivity extends AppCompatActivity {
                         .placeholder(R.drawable.placeholder)
                         .error(R.drawable.placeholder)
                         .into(imgRecipe);
+
+                // Load author info
+                if (recipe.author_id != null && !recipe.author_id.isEmpty()) {
+                    android.util.Log.d("RecipeDetailActivity", "Loading author info for ID: " + recipe.author_id);
+                    loadAuthorInfo(recipe.author_id);
+                } else {
+                    android.util.Log.d("RecipeDetailActivity", "Recipe has no author_id");
+                    authorInfoLayout.setVisibility(View.GONE);
+                }
 
                 // Category tag
                 if (recipe.category != null && !recipe.category.isEmpty()) {
@@ -454,7 +474,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
         commentData.put("user_id", currentUserId);
         commentData.put("content", comment);
         commentData.put("rating", rating);
-        commentData.put("created_at", new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault()).format(new java.util.Date()));
+        commentData.put("created_at",
+                new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault())
+                        .format(new java.util.Date()));
         commentData.put("sync_status", 1);
 
         // Get user name from users table
@@ -463,7 +485,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String userName = snapshot.getValue(String.class);
-                if (userName == null) userName = "Người dùng";
+                if (userName == null)
+                    userName = "Người dùng";
 
                 commentData.put("user_name", userName);
 
@@ -479,7 +502,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
                                 loadRecipeDetail();
                             })
                             .addOnFailureListener(e -> {
-                                Toast.makeText(RecipeDetailActivity.this, "Lỗi gửi đánh giá: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(RecipeDetailActivity.this, "Lỗi gửi đánh giá: " + e.getMessage(),
+                                        Toast.LENGTH_SHORT).show();
                             });
                 }
             }
@@ -499,9 +523,66 @@ public class RecipeDetailActivity extends AppCompatActivity {
                                 loadRecipeDetail();
                             })
                             .addOnFailureListener(e -> {
-                                Toast.makeText(RecipeDetailActivity.this, "Lỗi gửi đánh giá: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(RecipeDetailActivity.this, "Lỗi gửi đánh giá: " + e.getMessage(),
+                                        Toast.LENGTH_SHORT).show();
                             });
                 }
+            }
+        });
+    }
+
+    private void loadAuthorInfo(String authorId) {
+        android.util.Log.d("RecipeDetailActivity", "loadAuthorInfo called with authorId: " + authorId);
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users").child(authorId);
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                android.util.Log.d("RecipeDetailActivity", "Author snapshot exists: " + snapshot.exists());
+                if (snapshot.exists()) {
+                    User author = snapshot.getValue(User.class);
+                    if (author != null) {
+                        android.util.Log.d("RecipeDetailActivity", "Author loaded: " + author.getName());
+                        // Show author info layout
+                        authorInfoLayout.setVisibility(View.VISIBLE);
+
+                        // Set author name
+                        String authorName = author.getName();
+                        if (authorName != null && !authorName.isEmpty()) {
+                            tvAuthorName.setText(authorName);
+                            android.util.Log.d("RecipeDetailActivity", "Author name set: " + authorName);
+                        } else {
+                            tvAuthorName.setText("Người dùng");
+                            android.util.Log.d("RecipeDetailActivity", "Author name is empty, using default");
+                        }
+
+                        // Load author avatar
+                        String avatarUrl = author.getAvatar_url();
+                        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                            android.util.Log.d("RecipeDetailActivity", "Loading author avatar from URL: " + avatarUrl);
+                            Glide.with(RecipeDetailActivity.this)
+                                    .load(avatarUrl)
+                                    .placeholder(R.drawable.ic_user)
+                                    .error(R.drawable.ic_user)
+                                    .into(imgAuthorAvatar);
+                        } else {
+                            // Use default avatar
+                            android.util.Log.d("RecipeDetailActivity", "No avatar URL, using default icon");
+                            imgAuthorAvatar.setImageResource(R.drawable.ic_user);
+                        }
+                    } else {
+                        android.util.Log.w("RecipeDetailActivity", "Author is null");
+                        authorInfoLayout.setVisibility(View.GONE);
+                    }
+                } else {
+                    android.util.Log.w("RecipeDetailActivity", "Author snapshot does not exist for ID: " + authorId);
+                    authorInfoLayout.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                android.util.Log.e("RecipeDetailActivity", "Error loading author: " + error.getMessage());
+                authorInfoLayout.setVisibility(View.GONE);
             }
         });
     }
@@ -517,7 +598,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
         try {
             // Parse ISO format time (2025-11-03T15:30:00Z)
-            java.text.SimpleDateFormat iso = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault());
+            java.text.SimpleDateFormat iso = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'",
+                    java.util.Locale.getDefault());
             java.util.Date commentDate = iso.parse(createdAt);
             java.util.Date now = new java.util.Date();
 
@@ -535,7 +617,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
             } else if (diffInDays < 7) {
                 return diffInDays + " ngày trước";
             } else {
-                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy",
+                        java.util.Locale.getDefault());
                 return sdf.format(commentDate);
             }
         } catch (Exception e) {
@@ -549,7 +632,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 commentList.clear();
                 commentIdList.clear();
-                final int[] commentCount = {0}; // Use final array to make it effectively final
+                final int[] commentCount = { 0 }; // Use final array to make it effectively final
 
                 for (DataSnapshot commentSnapshot : snapshot.getChildren()) {
                     String commentId = commentSnapshot.getKey();
@@ -573,7 +656,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
                         // Convert created_at to timestamp for proper sorting
                         try {
                             if (createdAt != null) {
-                                java.text.SimpleDateFormat iso = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault());
+                                java.text.SimpleDateFormat iso = new java.text.SimpleDateFormat(
+                                        "yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault());
                                 java.util.Date date = iso.parse(createdAt);
                                 comment.timestamp = date.getTime();
                             } else {
@@ -610,7 +694,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(RecipeDetailActivity.this, "Lỗi tải bình luận: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(RecipeDetailActivity.this, "Lỗi tải bình luận: " + error.getMessage(),
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }

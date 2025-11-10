@@ -17,9 +17,14 @@ import android.widget.Toast;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.prm_g3.R;
 import com.example.prm_g3.RecipesListActivity;
 import com.example.prm_g3.UserManager;
+import com.example.prm_g3.adapters.RecipeGridAdapter;
+import com.example.prm_g3.models.Recipe;
 import com.example.prm_g3.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -29,16 +34,25 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ProfileActivity extends AppCompatActivity {
 
     private static final int EDIT_PROFILE_REQUEST_CODE = 1001;
 
     private ImageView imgAvatar, btnBack;
     private TextView tvUserName, tvUserEmail, tvUserBio, tvJoinedDate;
+    private TextView btnViewAllRecipes, tvNoRecipes;
     private Button btnLogout, btnEditProfile;
+    private RecyclerView rvMyRecipes;
+    private RecipeGridAdapter myRecipesAdapter;
+    private List<Recipe> myRecipesList;
+    private List<String> myRecipeIds;
 
     private FirebaseAuth mAuth;
     private DatabaseReference usersRef;
+    private DatabaseReference recipesRef;
     private String currentUserId;
 
     @Override
@@ -70,6 +84,7 @@ public class ProfileActivity extends AppCompatActivity {
         initViews();
         setupAuth();
         loadUserProfile();
+        loadMyRecipes();
         setupListeners();
         setupBottomNav();
     }
@@ -106,6 +121,19 @@ public class ProfileActivity extends AppCompatActivity {
         tvJoinedDate = findViewById(R.id.tvJoinedDate);
         btnLogout = findViewById(R.id.btnLogout);
         btnEditProfile = findViewById(R.id.btnEditProfile);
+        btnViewAllRecipes = findViewById(R.id.btnViewAllRecipes);
+        tvNoRecipes = findViewById(R.id.tvNoRecipes);
+        rvMyRecipes = findViewById(R.id.rvMyRecipes);
+
+        myRecipesList = new ArrayList<>();
+        myRecipeIds = new ArrayList<>();
+        myRecipesAdapter = new RecipeGridAdapter(this, myRecipesList, myRecipeIds);
+
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        rvMyRecipes.setLayoutManager(layoutManager);
+        rvMyRecipes.setAdapter(myRecipesAdapter);
+
+        recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
     }
 
     private void setupAuth() {
@@ -214,6 +242,59 @@ public class ProfileActivity extends AppCompatActivity {
             Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
             startActivityForResult(intent, EDIT_PROFILE_REQUEST_CODE);
         });
+
+        btnViewAllRecipes.setOnClickListener(v -> {
+            // Navigate to MyRecipesActivity or RecipesListActivity with filter
+            Intent intent = new Intent(ProfileActivity.this, RecipesListActivity.class);
+            intent.putExtra("filter_by_author", currentUserId);
+            startActivity(intent);
+        });
+    }
+
+    private void loadMyRecipes() {
+        if (currentUserId == null || currentUserId.isEmpty()) {
+            tvNoRecipes.setVisibility(View.VISIBLE);
+            rvMyRecipes.setVisibility(View.GONE);
+            return;
+        }
+
+        recipesRef.orderByChild("author_id").equalTo(currentUserId)
+                .limitToFirst(4) // Chỉ lấy 4 công thức đầu tiên để hiển thị
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        myRecipesList.clear();
+                        myRecipeIds.clear();
+
+                        for (DataSnapshot data : snapshot.getChildren()) {
+                            try {
+                                Recipe recipe = data.getValue(Recipe.class);
+                                if (recipe != null) {
+                                    myRecipesList.add(recipe);
+                                    myRecipeIds.add(data.getKey());
+                                }
+                            } catch (Exception e) {
+                                android.util.Log.e("ProfileActivity", "Error parsing recipe: " + data.getKey(), e);
+                            }
+                        }
+
+                        if (myRecipesList.isEmpty()) {
+                            tvNoRecipes.setVisibility(View.VISIBLE);
+                            rvMyRecipes.setVisibility(View.GONE);
+                        } else {
+                            tvNoRecipes.setVisibility(View.GONE);
+                            rvMyRecipes.setVisibility(View.VISIBLE);
+                            myRecipesAdapter.notifyDataSetChanged();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        android.util.Log.e("ProfileActivity", "Error loading my recipes: " + error.getMessage());
+                        tvNoRecipes.setVisibility(View.VISIBLE);
+                        rvMyRecipes.setVisibility(View.GONE);
+                    }
+                });
     }
 
     private void showLogoutDialog() {

@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.graphics.Color;
 import android.os.Build;
@@ -53,6 +54,7 @@ public class RecipesListActivity extends AppCompatActivity {
     private Button btnCreateNew;
     private DatabaseReference recipesRef;
     private String pendingSearchQuery = null;
+    private String filterByAuthorId = null;
 
     // Filter states
     private Set<String> selectedDifficulties = new HashSet<>();
@@ -243,8 +245,15 @@ public class RecipesListActivity extends AppCompatActivity {
             Recipe recipe = recipeList.get(i);
             boolean matches = true;
 
+            // Filter by author_id
+            if (filterByAuthorId != null && !filterByAuthorId.isEmpty()) {
+                if (recipe.author_id == null || !recipe.author_id.equals(filterByAuthorId)) {
+                    matches = false;
+                }
+            }
+
             // Filter by search query
-            if (!searchQuery.isEmpty()) {
+            if (matches && !searchQuery.isEmpty()) {
                 if (recipe.title == null || !recipe.title.toLowerCase().contains(searchQuery)) {
                     matches = false;
                 }
@@ -430,13 +439,32 @@ public class RecipesListActivity extends AppCompatActivity {
 
     private void handleSearchIntent() {
         Intent intent = getIntent();
-        if (intent != null && intent.hasExtra("search_query")) {
-            String searchQuery = intent.getStringExtra("search_query");
-            if (searchQuery != null && !searchQuery.isEmpty()) {
-                // Store the search query to apply after recipes are loaded
-                pendingSearchQuery = searchQuery;
-                // Set the search text immediately
-                edtSearch.setText(searchQuery);
+        if (intent != null) {
+            // Handle search query
+            if (intent.hasExtra("search_query")) {
+                String searchQuery = intent.getStringExtra("search_query");
+                if (searchQuery != null && !searchQuery.isEmpty()) {
+                    // Store the search query to apply after recipes are loaded
+                    pendingSearchQuery = searchQuery;
+                    // Set the search text immediately
+                    edtSearch.setText(searchQuery);
+                }
+            }
+
+            // Handle filter by author
+            if (intent.hasExtra("filter_by_author")) {
+                filterByAuthorId = intent.getStringExtra("filter_by_author");
+                if (filterByAuthorId != null && !filterByAuthorId.isEmpty()) {
+                    // Update title
+                    TextView tvTitle = findViewById(R.id.tvTitle);
+                    if (tvTitle != null) {
+                        tvTitle.setText("Công thức của tôi");
+                    }
+                    // Hide create button when viewing own recipes
+                    if (btnCreateNew != null) {
+                        btnCreateNew.setVisibility(View.GONE);
+                    }
+                }
             }
         }
     }
