@@ -5,17 +5,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+import android.graphics.Color;
+import androidx.appcompat.app.AlertDialog;
 
 import com.example.prm_g3.activity.CreateRecipeActivity;
 import com.example.prm_g3.activity.FavoritesActivity;
@@ -27,7 +31,10 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.Collections;
 
 public class RecipesListActivity extends AppCompatActivity {
 
@@ -42,6 +49,11 @@ public class RecipesListActivity extends AppCompatActivity {
     private Button btnCreateNew;
     private DatabaseReference recipesRef;
     private String pendingSearchQuery = null;
+
+    // Filter states
+    private Set<String> selectedDifficulties = new HashSet<>();
+    private Set<String> selectedCategories = new HashSet<>();
+    private List<String> availableCategories = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,22 +160,19 @@ public class RecipesListActivity extends AppCompatActivity {
 
                 Log.d("RecipesListActivity", "Loaded " + recipeList.size() + " recipes");
 
-                // Update filtered lists
-                filteredList.clear();
-                filteredIds.clear();
-
-                // Apply pending search query if exists
-                if (pendingSearchQuery != null && !pendingSearchQuery.isEmpty()) {
-                    filterRecipes(pendingSearchQuery);
-                    pendingSearchQuery = null; // Clear after applying
-                } else {
-                    filteredList.addAll(recipeList);
-                    filteredIds.addAll(recipeIds);
+                // Extract unique categories from recipes
+                Set<String> categoriesSet = new HashSet<>();
+                for (Recipe recipe : recipeList) {
+                    if (recipe.category != null && !recipe.category.trim().isEmpty()) {
+                        categoriesSet.add(recipe.category.trim());
+                    }
                 }
+                availableCategories.clear();
+                availableCategories.addAll(categoriesSet);
+                Collections.sort(availableCategories);
 
-                // Update adapter
-                updateAdapter();
-                Log.d("RecipesListActivity", "Adapter updated, filteredList size: " + filteredList.size());
+                // Apply filters
+                applyFilters();
             }
 
             @Override
@@ -183,7 +192,8 @@ public class RecipesListActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterRecipes(s.toString());
+                // Apply all filters including search query
+                applyFilters();
             }
 
             @Override
@@ -192,24 +202,44 @@ public class RecipesListActivity extends AppCompatActivity {
         });
     }
 
-    private void filterRecipes(String query) {
+    private void applyFilters() {
         filteredList.clear();
         filteredIds.clear();
-        if (query.isEmpty()) {
-            filteredList.addAll(recipeList);
-            filteredIds.addAll(recipeIds);
-        } else {
-            String lowerQuery = query.toLowerCase();
-            for (int i = 0; i < recipeList.size(); i++) {
-                Recipe r = recipeList.get(i);
-                if (r.title != null && r.title.toLowerCase().contains(lowerQuery)) {
-                    filteredList.add(r);
-                    filteredIds.add(recipeIds.get(i));
+
+        String searchQuery = edtSearch.getText().toString().trim().toLowerCase();
+
+        for (int i = 0; i < recipeList.size(); i++) {
+            Recipe recipe = recipeList.get(i);
+            boolean matches = true;
+
+            // Filter by search query
+            if (!searchQuery.isEmpty()) {
+                if (recipe.title == null || !recipe.title.toLowerCase().contains(searchQuery)) {
+                    matches = false;
                 }
+            }
+
+            // Filter by difficulty
+            if (matches && !selectedDifficulties.isEmpty()) {
+                if (recipe.difficulty == null || !selectedDifficulties.contains(recipe.difficulty)) {
+                    matches = false;
+                }
+            }
+
+            // Filter by category
+            if (matches && !selectedCategories.isEmpty()) {
+                if (recipe.category == null || !selectedCategories.contains(recipe.category.trim())) {
+                    matches = false;
+                }
+            }
+
+            if (matches) {
+                filteredList.add(recipe);
+                filteredIds.add(recipeIds.get(i));
             }
         }
 
-        // Update adapter with filtered data
+        // Update adapter
         updateAdapter();
     }
 
@@ -263,9 +293,99 @@ public class RecipesListActivity extends AppCompatActivity {
 
     private void setupFilterButton() {
         btnFilter.setOnClickListener(v -> {
-            // TODO: Show filter dialog
-            Toast.makeText(this, "Bộ lọc", Toast.LENGTH_SHORT).show();
+            showFilterDialog();
         });
+    }
+
+    private void showFilterDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_filter, null);
+        builder.setView(dialogView);
+
+        Dialog dialog = builder.create();
+
+        // Get views
+        CheckBox cbEasy = dialogView.findViewById(R.id.cbEasy);
+        CheckBox cbMedium = dialogView.findViewById(R.id.cbMedium);
+        CheckBox cbHard = dialogView.findViewById(R.id.cbHard);
+        LinearLayout containerCategories = dialogView.findViewById(R.id.containerCategories);
+        Button btnApply = dialogView.findViewById(R.id.btnApply);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+        Button btnReset = dialogView.findViewById(R.id.btnReset);
+
+        // Set current filter states
+        cbEasy.setChecked(selectedDifficulties.contains("Dễ"));
+        cbMedium.setChecked(selectedDifficulties.contains("Trung bình"));
+        cbHard.setChecked(selectedDifficulties.contains("Khó"));
+
+        // Clear and populate categories
+        containerCategories.removeAllViews();
+        List<CheckBox> categoryCheckboxes = new ArrayList<>();
+        if (availableCategories.isEmpty()) {
+            // Show message if no categories available
+            android.widget.TextView tvNoCategories = new android.widget.TextView(this);
+            tvNoCategories.setText("Chưa có loại món ăn nào");
+            tvNoCategories.setTextSize(14);
+            tvNoCategories.setTextColor(Color.parseColor("#999999"));
+            tvNoCategories.setPadding(0, (int) (8 * getResources().getDisplayMetrics().density), 0,
+                    (int) (8 * getResources().getDisplayMetrics().density));
+            containerCategories.addView(tvNoCategories);
+        } else {
+            for (String category : availableCategories) {
+                CheckBox checkBox = new CheckBox(this);
+                checkBox.setText(category);
+                checkBox.setTextSize(14);
+                checkBox.setTextColor(Color.parseColor("#333333"));
+                checkBox.setPadding(0, (int) (8 * getResources().getDisplayMetrics().density), 0,
+                        (int) (8 * getResources().getDisplayMetrics().density));
+                checkBox.setChecked(selectedCategories.contains(category));
+                containerCategories.addView(checkBox);
+                categoryCheckboxes.add(checkBox);
+            }
+        }
+
+        // Apply button
+        btnApply.setOnClickListener(v -> {
+            // Update selected difficulties
+            selectedDifficulties.clear();
+            if (cbEasy.isChecked())
+                selectedDifficulties.add("Dễ");
+            if (cbMedium.isChecked())
+                selectedDifficulties.add("Trung bình");
+            if (cbHard.isChecked())
+                selectedDifficulties.add("Khó");
+
+            // Update selected categories
+            selectedCategories.clear();
+            for (CheckBox checkBox : categoryCheckboxes) {
+                if (checkBox.isChecked()) {
+                    selectedCategories.add(checkBox.getText().toString());
+                }
+            }
+
+            // Apply filters
+            applyFilters();
+            dialog.dismiss();
+        });
+
+        // Cancel button
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        // Reset button
+        btnReset.setOnClickListener(v -> {
+            cbEasy.setChecked(false);
+            cbMedium.setChecked(false);
+            cbHard.setChecked(false);
+            for (CheckBox checkBox : categoryCheckboxes) {
+                checkBox.setChecked(false);
+            }
+            selectedDifficulties.clear();
+            selectedCategories.clear();
+            applyFilters();
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     private void handleSearchIntent() {

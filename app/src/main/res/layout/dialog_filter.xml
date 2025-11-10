@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp" android:background="#FFFFFF">
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Bộ lọc" android:textSize="22sp" android:textStyle="bold" android:textColor="#111111" android:gravity="center" android:layout_marginBottom="24dp" />
+
+    <!-- Độ khó Section -->
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Độ khó" android:textSize="16sp" android:textStyle="bold" android:textColor="#111111" android:layout_marginBottom="12dp" />
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="24dp">
+
+        <CheckBox android:id="@+id/cbEasy" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Dễ" android:textSize="14sp" android:textColor="#333333" android:paddingVertical="8dp" />
+
+        <CheckBox android:id="@+id/cbMedium" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Trung bình" android:textSize="14sp" android:textColor="#333333" android:paddingVertical="8dp" />
+
+        <CheckBox android:id="@+id/cbHard" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Khó" android:textSize="14sp" android:textColor="#333333" android:paddingVertical="8dp" />
+    </LinearLayout>
+
+    <!-- Categories Section -->
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Loại món ăn" android:textSize="16sp" android:textStyle="bold" android:textColor="#111111" android:layout_marginBottom="12dp" />
+
+    <androidx.core.widget.NestedScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:maxHeight="200dp" android:fillViewport="false">
+
+        <LinearLayout android:id="@+id/containerCategories" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+            <!-- Categories will be added dynamically here -->
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Buttons -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="end" android:layout_marginTop="24dp">
+
+        <Button android:id="@+id/btnReset" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Đặt lại" android:textColor="#666666" android:background="@android:color/transparent" android:paddingHorizontal="16dp" android:paddingVertical="8dp" />
+
+        <Button android:id="@+id/btnCancel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hủy" android:textColor="#666666" android:background="@android:color/transparent" android:paddingHorizontal="16dp" android:paddingVertical="8dp" />
+
+        <Button android:id="@+id/btnApply" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Áp dụng" android:textColor="#FFFFFF" android:background="#000000" android:paddingHorizontal="24dp" android:paddingVertical="8dp" android:layout_marginStart="8dp" />
+    </LinearLayout>
+</LinearLayout>
+
