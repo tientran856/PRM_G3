@@ -12,9 +12,13 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.prm_g3.R;
+import com.example.prm_g3.activity.CreateRecipeActivity;
 import com.example.prm_g3.activity.RecipeDetailActivity;
 import com.example.prm_g3.models.Recipe;
 import com.example.prm_g3.FavoritesManager;
+import com.example.prm_g3.UserManager;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import java.util.List;
 
 public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.ViewHolder> {
@@ -23,7 +27,10 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
     private List<String> recipeIds;
     private OnRecipeClickListener onRecipeClickListener;
     private OnFavoriteChangeListener onFavoriteChangeListener;
+    private OnRecipeDeletedListener onRecipeDeletedListener;
     private FavoritesManager favoritesManager;
+    private boolean showEditDelete = false;
+    private String currentUserId = null;
 
     public interface OnRecipeClickListener {
         void onRecipeClick(Recipe recipe, String recipeId);
@@ -33,11 +40,24 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
         void onFavoriteChanged();
     }
 
+    public interface OnRecipeDeletedListener {
+        void onRecipeDeleted();
+    }
+
     public RecipeGridAdapter(Context context, List<Recipe> recipes, List<String> recipeIds) {
         this.context = context;
         this.recipes = recipes;
         this.recipeIds = recipeIds;
         this.favoritesManager = new FavoritesManager(context);
+        this.currentUserId = UserManager.getInstance().getCurrentUserId();
+    }
+
+    public void setShowEditDelete(boolean show) {
+        this.showEditDelete = show;
+    }
+
+    public void setOnRecipeDeletedListener(OnRecipeDeletedListener listener) {
+        this.onRecipeDeletedListener = listener;
     }
 
     public void setOnRecipeClickListener(OnRecipeClickListener listener) {
@@ -108,6 +128,47 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
             }
         });
 
+        // Show/hide edit/delete buttons
+        if (showEditDelete && currentUserId != null && r.author_id != null && currentUserId.equals(r.author_id)) {
+            holder.actionButtonsLayout.setVisibility(View.VISIBLE);
+
+            // Edit button
+            holder.btnEdit.setOnClickListener(v -> {
+                Intent intent = new Intent(context, CreateRecipeActivity.class);
+                intent.putExtra("recipeId", recipeId);
+                intent.putExtra("editMode", true);
+                context.startActivity(intent);
+            });
+
+            // Delete button
+            holder.btnDelete.setOnClickListener(v -> {
+                new androidx.appcompat.app.AlertDialog.Builder(context)
+                        .setTitle("Xóa công thức")
+                        .setMessage("Bạn có chắc chắn muốn xóa công thức này? Hành động này không thể hoàn tác.")
+                        .setPositiveButton("Xóa", (dialog, which) -> {
+                            DatabaseReference recipeRef = FirebaseDatabase.getInstance()
+                                    .getReference("recipes").child(recipeId);
+                            recipeRef.removeValue()
+                                    .addOnSuccessListener(aVoid -> {
+                                        android.widget.Toast.makeText(context, "Đã xóa công thức",
+                                                android.widget.Toast.LENGTH_SHORT).show();
+                                        if (onRecipeDeletedListener != null) {
+                                            onRecipeDeletedListener.onRecipeDeleted();
+                                        }
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        android.widget.Toast.makeText(context,
+                                                "Lỗi xóa công thức: " + e.getMessage(),
+                                                android.widget.Toast.LENGTH_SHORT).show();
+                                    });
+                        })
+                        .setNegativeButton("Hủy", null)
+                        .show();
+            });
+        } else {
+            holder.actionButtonsLayout.setVisibility(View.GONE);
+        }
+
         // Set click listener
         holder.itemView.setOnClickListener(v -> {
             if (onRecipeClickListener != null) {
@@ -126,11 +187,11 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
         return recipes.size();
     }
 
-
-
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgRecipe, btnFavorite;
         TextView tvTitle, tvTime, tvRating, tvRatingText;
+        android.widget.LinearLayout actionButtonsLayout;
+        android.widget.Button btnEdit, btnDelete;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -140,6 +201,9 @@ public class RecipeGridAdapter extends RecyclerView.Adapter<RecipeGridAdapter.Vi
             tvTime = itemView.findViewById(R.id.tvTime);
             tvRating = itemView.findViewById(R.id.tvRating);
             tvRatingText = itemView.findViewById(R.id.tvRatingText);
+            actionButtonsLayout = itemView.findViewById(R.id.actionButtonsLayout);
+            btnEdit = itemView.findViewById(R.id.btnEdit);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
 }

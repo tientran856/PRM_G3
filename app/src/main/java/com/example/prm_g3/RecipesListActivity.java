@@ -32,6 +32,7 @@ import com.example.prm_g3.activity.MealPlanActivity;
 import com.example.prm_g3.activity.ProfileActivity;
 import com.example.prm_g3.adapters.RecipeGridAdapter;
 import com.example.prm_g3.models.Recipe;
+import com.example.prm_g3.UserManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.*;
 
@@ -149,6 +150,19 @@ public class RecipesListActivity extends AppCompatActivity {
         rvRecipes.setLayoutManager(layoutManager);
 
         adapter = new RecipeGridAdapter(this, filteredList, filteredIds);
+
+        // Show edit/delete buttons if viewing own recipes
+        if (filterByAuthorId != null && !filterByAuthorId.isEmpty()) {
+            String currentUserId = UserManager.getInstance().getCurrentUserId();
+            if (currentUserId != null && currentUserId.equals(filterByAuthorId)) {
+                adapter.setShowEditDelete(true);
+                adapter.setOnRecipeDeletedListener(() -> {
+                    // Reload recipes after deletion
+                    loadRecipes();
+                });
+            }
+        }
+
         rvRecipes.setAdapter(adapter);
 
         // Ensure RecyclerView is visible
@@ -156,12 +170,25 @@ public class RecipesListActivity extends AppCompatActivity {
     }
 
     private void updateAdapter() {
+        RecipeGridAdapter newAdapter = new RecipeGridAdapter(this, filteredList, filteredIds);
+
+        // Show edit/delete buttons if viewing own recipes
+        if (filterByAuthorId != null && !filterByAuthorId.isEmpty()) {
+            String currentUserId = UserManager.getInstance().getCurrentUserId();
+            if (currentUserId != null && currentUserId.equals(filterByAuthorId)) {
+                newAdapter.setShowEditDelete(true);
+                newAdapter.setOnRecipeDeletedListener(() -> {
+                    // Reload recipes after deletion
+                    loadRecipes();
+                });
+            }
+        }
+
         if (adapter == null) {
-            adapter = new RecipeGridAdapter(this, filteredList, filteredIds);
+            adapter = newAdapter;
             rvRecipes.setAdapter(adapter);
         } else {
-            // Update adapter with new lists
-            adapter = new RecipeGridAdapter(this, filteredList, filteredIds);
+            adapter = newAdapter;
             rvRecipes.setAdapter(adapter);
         }
         adapter.notifyDataSetChanged();
