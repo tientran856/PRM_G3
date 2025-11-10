@@ -2,14 +2,18 @@ package com.example.prm_g3.models;
 
 public class User {
     private String id, name, email, avatar_url, bio, joined_at;
+    private int sync_status;
 
-    public User() {}
+    public User() {
+        this.sync_status = 0; // Default sync status
+    }
 
     public User(String id, String name, String email) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.joined_at = String.valueOf(System.currentTimeMillis());
+        this.sync_status = 0;
     }
 
     // Getters
@@ -19,6 +23,7 @@ public class User {
     public String getAvatar_url() { return avatar_url; }
     public String getBio() { return bio; }
     public String getJoined_at() { return joined_at; }
+    public int getSync_status() { return sync_status; }
 
     // Setters
     public void setId(String id) { this.id = id; }
@@ -27,4 +32,5 @@ public class User {
     public void setAvatar_url(String avatar_url) { this.avatar_url = avatar_url; }
     public void setBio(String bio) { this.bio = bio; }
     public void setJoined_at(String joined_at) { this.joined_at = joined_at; }
+    public void setSync_status(int sync_status) { this.sync_status = sync_status; }
 }

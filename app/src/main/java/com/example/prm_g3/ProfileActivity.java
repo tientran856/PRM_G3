@@ -24,6 +24,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class ProfileActivity extends AppCompatActivity {
 
+    private static final int EDIT_PROFILE_REQUEST_CODE = 1001;
+
     private ImageView imgAvatar, btnBack;
     private TextView tvUserName, tvUserEmail, tvUserBio, tvJoinedDate;
     private Button btnLogout, btnEditProfile;
@@ -157,8 +159,8 @@ public class ProfileActivity extends AppCompatActivity {
         btnLogout.setOnClickListener(v -> showLogoutDialog());
 
         btnEditProfile.setOnClickListener(v -> {
-            // TODO: Implement edit profile functionality
-            Toast.makeText(this, "Tính năng chỉnh sửa hồ sơ sẽ được cập nhật", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(ProfileActivity.this, EditProfileActivity.class);
+            startActivityForResult(intent, EDIT_PROFILE_REQUEST_CODE);
         });
     }
 
@@ -178,6 +180,19 @@ public class ProfileActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == EDIT_PROFILE_REQUEST_CODE && resultCode == RESULT_OK) {
+            if (data != null && data.getBooleanExtra("updated", false)) {
+                // Reload user profile to show updated information
+                loadUserProfile();
+                Toast.makeText(this, "Hồ sơ đã được cập nhật", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void setupBottomNav() {
