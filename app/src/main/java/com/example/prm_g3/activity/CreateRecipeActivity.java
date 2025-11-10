@@ -36,7 +36,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
     private RelativeLayout containerImageUpload;
     private EditText edtTitle, edtDescription, edtTime, edtServings;
     private EditText edtImageUrl;
-    private Spinner spinnerDifficulty;
+    private Spinner spinnerDifficulty, spinnerCategory;
     private Button btnAddIngredient, btnAddStep, btnSave, btnUseUrl;
     private LinearLayout containerIngredients, containerSteps;
     private List<View> ingredientViews;
@@ -76,6 +76,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
         initViews();
         setupListeners();
         setupDifficultySpinner();
+        setupCategorySpinner();
     }
 
     private void setupStatusBar() {
@@ -110,6 +111,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
         edtServings = findViewById(R.id.edtServings);
         edtImageUrl = findViewById(R.id.edtImageUrl);
         spinnerDifficulty = findViewById(R.id.spinnerDifficulty);
+        spinnerCategory = findViewById(R.id.spinnerCategory);
         btnAddIngredient = findViewById(R.id.btnAddIngredient);
         btnAddStep = findViewById(R.id.btnAddStep);
         btnUseUrl = findViewById(R.id.btnUseUrl);
@@ -207,6 +209,31 @@ public class CreateRecipeActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, diffs);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerDifficulty.setAdapter(adapter);
+    }
+
+    private void setupCategorySpinner() {
+        String[] categories = {
+                "Món Á",
+                "Món chính",
+                "Món phụ",
+                "Món khai vị",
+                "Món tráng miệng",
+                "Món chay",
+                "Món nhanh",
+                "Truyền thống",
+                "Món Âu",
+                "Món Nhật",
+                "Món Hàn",
+                "Món Trung",
+                "Món Thái",
+                "Món Việt",
+                "Đồ uống",
+                "Bánh ngọt",
+                "Khác"
+        };
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(adapter);
     }
 
     private void addIngredientRow() {
@@ -446,6 +473,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
         recipe.description = edtDescription.getText().toString().trim();
         recipe.image_url = imageUrl;
         recipe.difficulty = spinnerDifficulty.getSelectedItem().toString();
+        recipe.category = spinnerCategory.getSelectedItem().toString();
         recipe.author_id = UserManager.getInstance().getCurrentUserId();
         recipe.created_at = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).format(new Date());
         recipe.updated_at = recipe.created_at;

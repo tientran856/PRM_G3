@@ -73,14 +73,7 @@
                 <TextView android:id="@+id/tvDescription" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:lineSpacingExtra="4dp" android:text="Món phở bò truyền thống với nước dùng được ninh từ xương bò trong nhiều giờ" android:textColor="#333333" android:textSize="15sp" />
 
                 <!-- Tags -->
-                <LinearLayout android:id="@+id/containerTags" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:orientation="horizontal">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:background="@drawable/tag_background" android:paddingHorizontal="12dp" android:paddingVertical="6dp" android:text="Món Á" android:textColor="#666666" android:textSize="12sp" />
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:background="@drawable/tag_background" android:paddingHorizontal="12dp" android:paddingVertical="6dp" android:text="Món chính" android:textColor="#666666" android:textSize="12sp" />
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/tag_background" android:paddingHorizontal="12dp" android:paddingVertical="6dp" android:text="Truyền thống" android:textColor="#666666" android:textSize="12sp" />
-                </LinearLayout>
+                <LinearLayout android:id="@+id/containerTags" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:orientation="horizontal" />
 
                 <!-- Tabs -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:background="#F5F5F5" android:orientation="horizontal" android:padding="4dp">

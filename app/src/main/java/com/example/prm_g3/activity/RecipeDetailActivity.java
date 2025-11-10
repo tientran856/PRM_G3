@@ -354,10 +354,12 @@ public class RecipeDetailActivity extends AppCompatActivity {
                     authorInfoLayout.setVisibility(View.GONE);
                 }
 
-                // Category tag
-                if (recipe.category != null && !recipe.category.isEmpty()) {
+                // Category tags - Load from database
+                containerTags.removeAllViews();
+                if (recipe.category != null && !recipe.category.trim().isEmpty()) {
+                    // Display category from database
                     TextView tagView = new TextView(RecipeDetailActivity.this);
-                    tagView.setText(recipe.category);
+                    tagView.setText(recipe.category.trim());
                     tagView.setBackgroundResource(R.drawable.tag_background);
                     tagView.setTextColor(0xFF666666);
                     tagView.setTextSize(12);
@@ -368,6 +370,28 @@ public class RecipeDetailActivity extends AppCompatActivity {
                     params.setMargins(0, 0, 16, 0);
                     tagView.setLayoutParams(params);
                     containerTags.addView(tagView);
+                }
+
+                // If recipe has tags field (comma-separated), display them too
+                if (recipe.tags != null && !recipe.tags.trim().isEmpty()) {
+                    String[] tagArray = recipe.tags.split(",");
+                    for (String tag : tagArray) {
+                        String trimmedTag = tag.trim();
+                        if (!trimmedTag.isEmpty()) {
+                            TextView tagView = new TextView(RecipeDetailActivity.this);
+                            tagView.setText(trimmedTag);
+                            tagView.setBackgroundResource(R.drawable.tag_background);
+                            tagView.setTextColor(0xFF666666);
+                            tagView.setTextSize(12);
+                            tagView.setPadding(24, 12, 24, 12);
+                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                                    LinearLayout.LayoutParams.WRAP_CONTENT);
+                            params.setMargins(0, 0, 16, 0);
+                            tagView.setLayoutParams(params);
+                            containerTags.addView(tagView);
+                        }
+                    }
                 }
 
                 // Load ingredients

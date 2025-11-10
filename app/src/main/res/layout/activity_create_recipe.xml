@@ -77,6 +77,11 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Category -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="8dp" android:text="Danh mục" android:textColor="#111111" android:textSize="16sp" android:textStyle="bold" />
+
+            <Spinner android:id="@+id/spinnerCategory" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="24dp" android:background="@drawable/edit_text_background" android:padding="12dp" />
+
             <!-- Ingredients Section -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:gravity="center_vertical" android:orientation="horizontal">
 
