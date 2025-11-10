@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.prm_g3.R;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.WriterException;
@@ -43,8 +44,7 @@ public class ShareRecipeDialog extends Dialog {
         this.context = context;
         this.recipeId = recipeId;
         this.recipeTitle = recipeTitle;
-        // Tạo deep link cho công thức
-        this.shareLink = "prmrecipe://recipe/" + recipeId;
+        resolveShareLink();
     }
 
     @Override
@@ -77,12 +77,21 @@ public class ShareRecipeDialog extends Dialog {
     }
 
     private void updateUI() {
-        tvRecipeTitle.setText(recipeTitle);
+        String titleToDisplay = recipeTitle != null && !recipeTitle.trim().isEmpty()
+                ? recipeTitle.trim()
+                : context.getString(R.string.app_name);
+        tvRecipeTitle.setText(titleToDisplay);
         tvShareLink.setText(shareLink);
     }
 
     private void generateQRCode() {
         try {
+            if (shareLink == null || shareLink.trim().isEmpty()) {
+                android.util.Log.w("ShareRecipeDialog", "shareLink is empty, skip QR generation");
+                Toast.makeText(context, "Không có link để tạo mã QR", Toast.LENGTH_SHORT).show();
+                imgQRCode.setImageBitmap(null);
+                return;
+            }
             android.util.Log.d("ShareRecipeDialog", "Generating QR code for: " + shareLink);
             int width = 800;
             int height = 800;
@@ -117,13 +126,28 @@ public class ShareRecipeDialog extends Dialog {
     }
 
     private void shareViaIntent() {
-        String shareText = recipeTitle + "\n\n" + shareLink;
+        String titleForShare = recipeTitle != null && !recipeTitle.trim().isEmpty()
+                ? recipeTitle.trim()
+                : context.getString(R.string.app_name);
+        String shareText = titleForShare + "\n\n" + shareLink;
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
         shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Chia sẻ công thức: " + recipeTitle);
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Chia sẻ công thức: " + titleForShare);
         context.startActivity(Intent.createChooser(shareIntent, "Chia sẻ công thức"));
         dismiss();
+    }
+
+    private void resolveShareLink() {
+        android.util.Log.d("ShareRecipeDialog", "resolveShareLink - recipeId: " + recipeId + ", recipeTitle: " + recipeTitle);
+        String hardcodedLink = RecipeLinkManager.getShareLinkForRecipe(recipeTitle);
+        android.util.Log.d("ShareRecipeDialog", "Hardcoded link from RecipeLinkManager: " + hardcodedLink);
+        if (hardcodedLink != null && !hardcodedLink.trim().isEmpty()) {
+            shareLink = hardcodedLink.trim();
+        } else {
+            // Fallback deep link nếu không có link hardcode
+            shareLink = "prmrecipe://recipe/" + recipeId;
+        }
     }
 }
 
