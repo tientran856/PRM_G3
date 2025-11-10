@@ -9,9 +9,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.graphics.Color;
 
 import com.example.prm_g3.R;
 import com.example.prm_g3.RecipesListActivity;
@@ -21,7 +24,7 @@ import com.example.prm_g3.adapters.RecipeGridAdapter;
 import com.example.prm_g3.models.Recipe;
 import com.example.prm_g3.models.User;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.firebase.auth.FirebaseAuth;          // THÊM DÒNG NÀY
+import com.google.firebase.auth.FirebaseAuth; // THÊM DÒNG NÀY
 import com.google.firebase.database.*;
 
 import java.util.ArrayList;
@@ -36,9 +39,14 @@ public class MainActivity extends AppCompatActivity {
     private List<Recipe> popularRecipeList;
     private List<String> featuredRecipeIds;
     private List<String> popularRecipeIds;
+    private List<Recipe> allRecipes;
+    private List<String> allRecipeIds;
     private EditText edtSearch;
     private TextView tvGreeting;
+    private TextView btnCategoryMain, btnCategoryDessert, btnCategoryFast;
+    private LinearLayout searchBarLayout;
     private DatabaseReference recipesRef;
+    private String selectedCategory = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,10 +63,16 @@ public class MainActivity extends AppCompatActivity {
         rvPopularRecipes = findViewById(R.id.rvPopularRecipes);
         edtSearch = findViewById(R.id.edtSearch);
         tvGreeting = findViewById(R.id.tvGreeting);
+        btnCategoryMain = findViewById(R.id.btnCategoryMain);
+        btnCategoryDessert = findViewById(R.id.btnCategoryDessert);
+        btnCategoryFast = findViewById(R.id.btnCategoryFast);
+        searchBarLayout = findViewById(R.id.searchBarLayout);
         recipeList = new ArrayList<>();
         popularRecipeList = new ArrayList<>();
         featuredRecipeIds = new ArrayList<>();
         popularRecipeIds = new ArrayList<>();
+        allRecipes = new ArrayList<>();
+        allRecipeIds = new ArrayList<>();
 
         // Featured recipes - Linear layout
         adapter = new RecipeAdapter(this, recipeList, featuredRecipeIds);
@@ -78,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
         setupBottomNav();
         setupSearch();
+        setupFilters();
     }
 
     @Override
@@ -96,13 +111,9 @@ public class MainActivity extends AppCompatActivity {
         recipesRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                recipeList.clear();
-                popularRecipeList.clear();
-                featuredRecipeIds.clear();
-                popularRecipeIds.clear();
+                allRecipes.clear();
+                allRecipeIds.clear();
 
-                List<Recipe> allRecipes = new ArrayList<>();
-                List<String> allRecipeIds = new ArrayList<>();
                 for (DataSnapshot data : snapshot.getChildren()) {
                     try {
                         Recipe r = data.getValue(Recipe.class);
@@ -111,7 +122,8 @@ public class MainActivity extends AppCompatActivity {
                             allRecipeIds.add(data.getKey());
                         }
                     } catch (Exception e) {
-                        android.util.Log.e("MainActivity", "Error parsing recipe: " + data.getKey() + " - " + e.getMessage(), e);
+                        android.util.Log.e("MainActivity",
+                                "Error parsing recipe: " + data.getKey() + " - " + e.getMessage(), e);
                         // Skip this recipe and continue with others
                     }
                 }
@@ -120,13 +132,24 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Featured recipes: top 3 highest rated
-                // Sort recipes with their IDs together
-                List<RecipeWithId> recipeWithIds = new ArrayList<>();
+                // Apply category filter if selected
+                List<RecipeWithId> filteredRecipeWithIds = new ArrayList<>();
                 for (int i = 0; i < allRecipes.size(); i++) {
-                    recipeWithIds.add(new RecipeWithId(allRecipes.get(i), allRecipeIds.get(i)));
+                    Recipe recipe = allRecipes.get(i);
+                    if (selectedCategory == null
+                            || (recipe.category != null && recipe.category.equals(selectedCategory))) {
+                        filteredRecipeWithIds.add(new RecipeWithId(recipe, allRecipeIds.get(i)));
+                    }
                 }
+
+                // Featured recipes: top 3 highest rated from filtered recipes
+                List<RecipeWithId> recipeWithIds = new ArrayList<>(filteredRecipeWithIds);
                 recipeWithIds.sort((a, b) -> Double.compare(b.recipe.rating, a.recipe.rating));
+
+                recipeList.clear();
+                popularRecipeList.clear();
+                featuredRecipeIds.clear();
+                popularRecipeIds.clear();
 
                 int featuredCount = Math.min(3, recipeWithIds.size());
                 for (int i = 0; i < featuredCount; i++) {
@@ -160,23 +183,123 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupSearch() {
-        edtSearch.setOnEditorActionListener((v, actionId, event) -> {
-            String keyword = edtSearch.getText().toString().trim().toLowerCase();
-            List<Recipe> filtered = new ArrayList<>();
-            List<String> filteredIds = new ArrayList<>();
-
-            for (int i = 0; i < recipeList.size(); i++) {
-                Recipe r = recipeList.get(i);
-                if (r.title.toLowerCase().contains(keyword)) {
-                    filtered.add(r);
-                    filteredIds.add(featuredRecipeIds.get(i));
-                }
+        // Make search bar clickable - navigate to RecipesListActivity
+        View.OnClickListener searchClickListener = v -> {
+            String searchQuery = edtSearch.getText().toString().trim();
+            Intent intent = new Intent(MainActivity.this, RecipesListActivity.class);
+            if (!searchQuery.isEmpty()) {
+                intent.putExtra("search_query", searchQuery);
             }
+            startActivity(intent);
+        };
 
-            adapter = new RecipeAdapter(MainActivity.this, filtered, filteredIds);
-            rvRecipes.setAdapter(adapter);
-            return true;
+        searchBarLayout.setOnClickListener(searchClickListener);
+        edtSearch.setOnClickListener(searchClickListener);
+    }
+
+    private void setupFilters() {
+        // Reset all button backgrounds
+        resetFilterButtons();
+
+        btnCategoryMain.setOnClickListener(v -> {
+            if (selectedCategory != null && selectedCategory.equals("Món chính")) {
+                // Deselect if already selected
+                selectedCategory = null;
+                resetFilterButtons();
+            } else {
+                selectedCategory = "Món chính";
+                setSelectedFilter(btnCategoryMain);
+            }
+            applyCategoryFilter();
         });
+
+        btnCategoryDessert.setOnClickListener(v -> {
+            if (selectedCategory != null && selectedCategory.equals("Món tráng miệng")) {
+                // Deselect if already selected
+                selectedCategory = null;
+                resetFilterButtons();
+            } else {
+                selectedCategory = "Món tráng miệng";
+                setSelectedFilter(btnCategoryDessert);
+            }
+            applyCategoryFilter();
+        });
+
+        btnCategoryFast.setOnClickListener(v -> {
+            if (selectedCategory != null && selectedCategory.equals("Món ăn nhanh")) {
+                // Deselect if already selected
+                selectedCategory = null;
+                resetFilterButtons();
+            } else {
+                selectedCategory = "Món ăn nhanh";
+                setSelectedFilter(btnCategoryFast);
+            }
+            applyCategoryFilter();
+        });
+    }
+
+    private void applyCategoryFilter() {
+        // Filter the already loaded recipes without reloading from Firebase
+        if (allRecipes.isEmpty()) {
+            return;
+        }
+
+        // Apply category filter
+        List<RecipeWithId> filteredRecipeWithIds = new ArrayList<>();
+        for (int i = 0; i < allRecipes.size(); i++) {
+            Recipe recipe = allRecipes.get(i);
+            if (selectedCategory == null || (recipe.category != null && recipe.category.equals(selectedCategory))) {
+                filteredRecipeWithIds.add(new RecipeWithId(recipe, allRecipeIds.get(i)));
+            }
+        }
+
+        // Featured recipes: top 3 highest rated from filtered recipes
+        List<RecipeWithId> recipeWithIds = new ArrayList<>(filteredRecipeWithIds);
+        recipeWithIds.sort((a, b) -> Double.compare(b.recipe.rating, a.recipe.rating));
+
+        recipeList.clear();
+        popularRecipeList.clear();
+        featuredRecipeIds.clear();
+        popularRecipeIds.clear();
+
+        int featuredCount = Math.min(3, recipeWithIds.size());
+        for (int i = 0; i < featuredCount; i++) {
+            recipeList.add(recipeWithIds.get(i).recipe);
+            featuredRecipeIds.add(recipeWithIds.get(i).recipeId);
+        }
+
+        // Popular recipes: all remaining recipes (or all if less than 3)
+        if (recipeWithIds.size() > featuredCount) {
+            for (int i = featuredCount; i < recipeWithIds.size(); i++) {
+                popularRecipeList.add(recipeWithIds.get(i).recipe);
+                popularRecipeIds.add(recipeWithIds.get(i).recipeId);
+            }
+        } else {
+            // If we have less than 3 recipes, show all in popular
+            for (RecipeWithId rwi : recipeWithIds) {
+                popularRecipeList.add(rwi.recipe);
+                popularRecipeIds.add(rwi.recipeId);
+            }
+        }
+
+        adapter.notifyDataSetChanged();
+        popularAdapter.notifyDataSetChanged();
+    }
+
+    private void resetFilterButtons() {
+        btnCategoryMain.setBackgroundResource(R.drawable.category_button_bg);
+        btnCategoryMain.setTextColor(Color.parseColor("#333333"));
+        btnCategoryDessert.setBackgroundResource(R.drawable.category_button_bg);
+        btnCategoryDessert.setTextColor(Color.parseColor("#333333"));
+        btnCategoryFast.setBackgroundResource(R.drawable.category_button_bg);
+        btnCategoryFast.setTextColor(Color.parseColor("#333333"));
+    }
+
+    private void setSelectedFilter(TextView selectedButton) {
+        resetFilterButtons();
+        // You can customize the selected state background and color here
+        // For now, just change text color to indicate selection
+        selectedButton.setTextColor(Color.parseColor("#FF6B35")); // Orange color for selection
     }
 
     private void setupBottomNav() {

@@ -41,6 +41,7 @@ public class RecipesListActivity extends AppCompatActivity {
     private ImageView btnFilter;
     private Button btnCreateNew;
     private DatabaseReference recipesRef;
+    private String pendingSearchQuery = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +67,10 @@ public class RecipesListActivity extends AppCompatActivity {
 
         initViews();
         setupRecyclerView();
+
+        // Handle search query from Intent first (before loading recipes)
+        handleSearchIntent();
+
         loadRecipes();
         setupSearch();
         setupBottomNav();
@@ -135,7 +140,8 @@ public class RecipesListActivity extends AppCompatActivity {
                             recipeIds.add(data.getKey());
                         }
                     } catch (Exception e) {
-                        Log.e("RecipesListActivity", "Error parsing recipe: " + data.getKey() + " - " + e.getMessage(), e);
+                        Log.e("RecipesListActivity", "Error parsing recipe: " + data.getKey() + " - " + e.getMessage(),
+                                e);
                         // Skip this recipe and continue with others
                     }
                 }
@@ -145,8 +151,15 @@ public class RecipesListActivity extends AppCompatActivity {
                 // Update filtered lists
                 filteredList.clear();
                 filteredIds.clear();
-                filteredList.addAll(recipeList);
-                filteredIds.addAll(recipeIds);
+
+                // Apply pending search query if exists
+                if (pendingSearchQuery != null && !pendingSearchQuery.isEmpty()) {
+                    filterRecipes(pendingSearchQuery);
+                    pendingSearchQuery = null; // Clear after applying
+                } else {
+                    filteredList.addAll(recipeList);
+                    filteredIds.addAll(recipeIds);
+                }
 
                 // Update adapter
                 updateAdapter();
@@ -253,5 +266,18 @@ public class RecipesListActivity extends AppCompatActivity {
             // TODO: Show filter dialog
             Toast.makeText(this, "Bộ lọc", Toast.LENGTH_SHORT).show();
         });
+    }
+
+    private void handleSearchIntent() {
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("search_query")) {
+            String searchQuery = intent.getStringExtra("search_query");
+            if (searchQuery != null && !searchQuery.isEmpty()) {
+                // Store the search query to apply after recipes are loaded
+                pendingSearchQuery = searchQuery;
+                // Set the search text immediately
+                edtSearch.setText(searchQuery);
+            }
+        }
     }
 }

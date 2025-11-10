@@ -1,249 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/rootLayout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F8F8F8"
-    tools:context=".activity.MainActivity">
+    xmlns:tools="http://schemas.android.com/tools" android:id="@+id/rootLayout" android:layout_width="match_parent" android:layout_height="match_parent" android:background="#F8F8F8" tools:context=".activity.MainActivity">
 
     <!-- Header cố định -->
-    <LinearLayout
-        android:id="@+id/headerLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#0D0D1A"
-        android:elevation="4dp"
-        android:orientation="vertical"
-        android:paddingTop="?attr/actionBarSize">
+    <LinearLayout android:id="@+id/headerLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#0D0D1A" android:elevation="4dp" android:orientation="vertical" android:paddingTop="?attr/actionBarSize">
 
         <!-- Header -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#0D0D1A"
-            android:orientation="vertical"
-            android:padding="16dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#0D0D1A" android:orientation="vertical" android:padding="16dp">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_chef_hat" />
+                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:layout_marginEnd="8dp" android:src="@drawable/ic_chef_hat" />
 
-                <TextView
-                    android:id="@+id/tvAppTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Cooking Guide"
-                    android:textColor="#FFFFFF"
-                    android:textSize="22sp"
-                    android:textStyle="bold" />
+                <TextView android:id="@+id/tvAppTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Cooking Guide" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvGreeting"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Chào buổi sáng, Chef!"
-                android:textColor="#DDDDDD"
-                android:textSize="14sp" />
+            <TextView android:id="@+id/tvGreeting" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Chào buổi sáng, Chef!" android:textColor="#DDDDDD" android:textSize="14sp" />
 
             <!-- Thanh tìm kiếm -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/search_bg"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="12dp">
+            <LinearLayout android:id="@+id/searchBarLayout" android:layout_width="match_parent" android:layout_height="44dp" android:layout_marginTop="12dp" android:background="@drawable/search_bg" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="12dp" android:clickable="true" android:focusable="true">
 
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_search"
-                    app:tint="#555" />
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_search" app:tint="#555" />
 
-                <EditText
-                    android:id="@+id/edtSearch"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="8dp"
-                    android:background="@null"
-                    android:hint="Tìm công thức, nguyên liệu..."
-                    android:inputType="text"
-                    android:textColor="#000" />
+                <EditText android:id="@+id/edtSearch" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginStart="8dp" android:background="@null" android:hint="Tìm công thức, nguyên liệu..." android:inputType="text" android:textColor="#000" android:focusable="false" android:focusableInTouchMode="false" android:clickable="true" />
             </LinearLayout>
         </LinearLayout>
 
         <!-- Thanh danh mục cố định -->
-        <HorizontalScrollView
-            android:id="@+id/categoryBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#FFFFFF"
-            android:paddingVertical="8dp"
-            android:scrollbars="none">
+        <HorizontalScrollView android:id="@+id/categoryBar" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#FFFFFF" android:paddingVertical="8dp" android:scrollbars="none">
 
-            <LinearLayout
-                android:id="@+id/categoryContainer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingHorizontal="12dp">
+            <LinearLayout android:id="@+id/categoryContainer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="12dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/category_button_bg"
-                    android:gravity="center"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:text="Món chính"
-                    android:textColor="#333333"
-                    android:textSize="13sp" />
+                <TextView android:id="@+id/btnCategoryMain" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:background="@drawable/category_button_bg" android:gravity="center" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:text="Món chính" android:textColor="#333333" android:textSize="13sp" android:clickable="true" android:focusable="true" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/category_button_bg"
-                    android:gravity="center"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:text="Món tráng miệng"
-                    android:textColor="#333333"
-                    android:textSize="13sp" />
+                <TextView android:id="@+id/btnCategoryDessert" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:background="@drawable/category_button_bg" android:gravity="center" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:text="Món tráng miệng" android:textColor="#333333" android:textSize="13sp" android:clickable="true" android:focusable="true" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/category_button_bg"
-                    android:gravity="center"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:text="Món ăn nhanh"
-                    android:textColor="#333333"
-                    android:textSize="13sp" />
+                <TextView android:id="@+id/btnCategoryFast" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:background="@drawable/category_button_bg" android:gravity="center" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:text="Món ăn nhanh" android:textColor="#333333" android:textSize="13sp" android:clickable="true" android:focusable="true" />
             </LinearLayout>
         </HorizontalScrollView>
     </LinearLayout>
 
     <!-- Nội dung cuộn -->
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/nestedScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/bottomNavigation"
-        android:layout_below="@id/headerLayout"
-        android:background="#F8F8F8"
-        android:padding="12dp">
+    <androidx.core.widget.NestedScrollView android:id="@+id/nestedScrollView" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_above="@id/bottomNavigation" android:layout_below="@id/headerLayout" android:background="#F8F8F8" android:padding="12dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#F8F8F8"
-            android:orientation="vertical"
-            android:paddingBottom="80dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#F8F8F8" android:orientation="vertical" android:paddingBottom="80dp">
 
             <!-- Tiêu đề Nổi bật -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp">
+            <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="6dp">
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentStart="true" android:layout_centerVertical="true" android:gravity="center_vertical" android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/tvFeaturedTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Nổi bật hôm nay"
-                        android:textColor="#111111"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                    <TextView android:id="@+id/tvFeaturedTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Nổi bật hôm nay" android:textColor="#111111" android:textSize="18sp" android:textStyle="bold" />
 
-                    <ImageView
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:layout_marginStart="6dp"
-                        android:src="@android:drawable/arrow_up_float"
-                        app:tint="#111111" />
+                    <ImageView android:layout_width="14dp" android:layout_height="14dp" android:layout_marginStart="6dp" android:src="@android:drawable/arrow_up_float" app:tint="#111111" />
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvSeeAll"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:text="Xem tất cả"
-                    android:textColor="#111111"
-                    android:textSize="14sp" />
+                <TextView android:id="@+id/tvSeeAll" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text="Xem tất cả" android:textColor="#111111" android:textSize="14sp" />
             </RelativeLayout>
 
             <!-- Danh sách công thức nổi bật -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvRecipes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false" />
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvRecipes" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" />
 
             <!-- Tiêu đề Công thức phổ biến -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="6dp">
+            <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:layout_marginBottom="6dp">
 
-                <TextView
-                    android:id="@+id/tvPopularTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
-                    android:text="Công thức phổ biến"
-                    android:textColor="#111111"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                <TextView android:id="@+id/tvPopularTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentStart="true" android:layout_centerVertical="true" android:text="Công thức phổ biến" android:textColor="#111111" android:textSize="18sp" android:textStyle="bold" />
             </RelativeLayout>
 
             <!-- Grid công thức phổ biến -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvPopularRecipes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false" />
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvPopularRecipes" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
     <!-- Thanh điều hướng dưới -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#FFFFFF"
-        android:elevation="8dp"
-        app:itemIconTint="@color/nav_selector"
-        app:itemTextColor="@color/nav_selector"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_nav_menu" />
+    <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottomNavigation" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:background="#FFFFFF" android:elevation="8dp" app:itemIconTint="@color/nav_selector" app:itemTextColor="@color/nav_selector" app:labelVisibilityMode="labeled" app:menu="@menu/bottom_nav_menu" />
 </RelativeLayout>
