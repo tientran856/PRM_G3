@@ -6,68 +6,46 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
 import com.example.prm_g3.R;
 import com.example.prm_g3.models.Recipe;
 import com.example.prm_g3.models.Ingredient;
 import com.example.prm_g3.models.Step;
 import com.example.prm_g3.UserManager;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import java.util.*;
 
 public class CreateRecipeActivity extends AppCompatActivity {
 
-    private ImageButton btnBack;
-    private Button btnSave;
     private ImageView imgRecipe;
     private RelativeLayout containerImageUpload;
     private EditText edtTitle, edtDescription, edtTime, edtServings;
     private Spinner spinnerDifficulty;
-    private Button btnAddIngredient, btnAddStep;
+    private Button btnAddIngredient, btnAddStep, btnSave;
     private LinearLayout containerIngredients, containerSteps;
-
     private List<View> ingredientViews;
     private List<View> stepViews;
     private Uri imageUri;
+
     private static final int PICK_IMAGE_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            setContentView(R.layout.activity_create_recipe);
-            initViews();
-            setupClickListeners();
-            setupDifficultySpinner();
-        } catch (Exception e) {
-            android.util.Log.e("CreateRecipeActivity", "Error in onCreate: " + e.getMessage(), e);
-            Toast.makeText(this, "Lỗi khởi tạo: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            finish();
-        }
+        setContentView(R.layout.activity_create_recipe);
+        initViews();
+        setupListeners();
+        setupDifficultySpinner();
     }
 
     private void initViews() {
-        btnBack = findViewById(R.id.btnBack);
-        btnSave = findViewById(R.id.btnSave);
         imgRecipe = findViewById(R.id.imgRecipe);
         containerImageUpload = findViewById(R.id.containerImageUpload);
         edtTitle = findViewById(R.id.edtTitle);
@@ -79,14 +57,13 @@ public class CreateRecipeActivity extends AppCompatActivity {
         btnAddStep = findViewById(R.id.btnAddStep);
         containerIngredients = findViewById(R.id.containerIngredients);
         containerSteps = findViewById(R.id.containerSteps);
+        btnSave = findViewById(R.id.btnSave);
 
         ingredientViews = new ArrayList<>();
         stepViews = new ArrayList<>();
     }
 
-    private void setupClickListeners() {
-        btnBack.setOnClickListener(v -> finish());
-
+    private void setupListeners() {
         containerImageUpload.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK);
             intent.setType("image/*");
@@ -94,61 +71,37 @@ public class CreateRecipeActivity extends AppCompatActivity {
         });
 
         btnAddIngredient.setOnClickListener(v -> addIngredientRow());
-
         btnAddStep.setOnClickListener(v -> addStepRow());
-
         btnSave.setOnClickListener(v -> saveRecipe());
     }
 
     private void setupDifficultySpinner() {
-        String[] difficulties = { "Dễ", "Trung bình", "Khó" };
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, difficulties);
+        String[] diffs = {"Dễ", "Trung bình", "Khó"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, diffs);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerDifficulty.setAdapter(adapter);
     }
 
     private void addIngredientRow() {
-        View rowView = getLayoutInflater().inflate(R.layout.item_ingredient_input, containerIngredients, false);
-
-        EditText edtIngredientName = rowView.findViewById(R.id.edtIngredientName);
-        EditText edtIngredientQuantity = rowView.findViewById(R.id.edtIngredientQuantity);
-        ImageButton btnRemove = rowView.findViewById(R.id.btnRemoveIngredient);
-
+        View row = getLayoutInflater().inflate(R.layout.item_ingredient_input, containerIngredients, false);
+        ImageButton btnRemove = row.findViewById(R.id.btnRemoveIngredient);
         btnRemove.setOnClickListener(v -> {
-            containerIngredients.removeView(rowView);
-            ingredientViews.remove(rowView);
+            containerIngredients.removeView(row);
+            ingredientViews.remove(row);
         });
-
-        containerIngredients.addView(rowView);
-        ingredientViews.add(rowView);
+        containerIngredients.addView(row);
+        ingredientViews.add(row);
     }
 
     private void addStepRow() {
-        View rowView = getLayoutInflater().inflate(R.layout.item_step_input, containerSteps, false);
-
-        TextView tvStepNumber = rowView.findViewById(R.id.tvStepNumber);
-        EditText edtStepDescription = rowView.findViewById(R.id.edtStepDescription);
-        ImageButton btnRemove = rowView.findViewById(R.id.btnRemoveStep);
-
-        int stepNumber = stepViews.size() + 1;
-        tvStepNumber.setText(String.valueOf(stepNumber));
-
+        View row = getLayoutInflater().inflate(R.layout.item_step_input, containerSteps, false);
+        ImageButton btnRemove = row.findViewById(R.id.btnRemoveStep);
         btnRemove.setOnClickListener(v -> {
-            containerSteps.removeView(rowView);
-            stepViews.remove(rowView);
-            updateStepNumbers();
+            containerSteps.removeView(row);
+            stepViews.remove(row);
         });
-
-        containerSteps.addView(rowView);
-        stepViews.add(rowView);
-    }
-
-    private void updateStepNumbers() {
-        for (int i = 0; i < stepViews.size(); i++) {
-            View stepView = stepViews.get(i);
-            TextView tvStepNumber = stepView.findViewById(R.id.tvStepNumber);
-            tvStepNumber.setText(String.valueOf(i + 1));
-        }
+        containerSteps.addView(row);
+        stepViews.add(row);
     }
 
     @Override
@@ -161,148 +114,80 @@ public class CreateRecipeActivity extends AppCompatActivity {
         }
     }
 
+    // ✅ New save flow
     private void saveRecipe() {
-        // Validate inputs
         if (edtTitle.getText().toString().trim().isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập tên món ăn", Toast.LENGTH_SHORT).show();
             return;
         }
-
         if (imageUri == null) {
             Toast.makeText(this, "Vui lòng chọn hình ảnh", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Get ingredients
-        List<String> ingredients = new ArrayList<>();
-        for (View view : ingredientViews) {
-            EditText edtName = view.findViewById(R.id.edtIngredientName);
-            EditText edtQuantity = view.findViewById(R.id.edtIngredientQuantity);
-            String name = edtName.getText().toString().trim();
-            String quantity = edtQuantity.getText().toString().trim();
-            if (!name.isEmpty() && !quantity.isEmpty()) {
-                ingredients.add(name + ": " + quantity);
-            }
-        }
+        uploadImageToFirebase(imageUri, downloadUrl -> uploadRecipeWithImage(downloadUrl));
+    }
 
-        if (ingredients.isEmpty()) {
-            Toast.makeText(this, "Vui lòng thêm ít nhất một nguyên liệu", Toast.LENGTH_SHORT).show();
-            return;
-        }
+    private void uploadImageToFirebase(Uri uri, OnSuccessListener<String> onSuccess) {
+        String fileName = "recipe_images/" + System.currentTimeMillis() + "_" + UUID.randomUUID() + ".jpg";
+        StorageReference ref = FirebaseStorage.getInstance().getReference(fileName);
+        ref.putFile(uri)
+                .addOnSuccessListener(task -> ref.getDownloadUrl().addOnSuccessListener(url -> {
+                    onSuccess.onSuccess(url.toString());
+                }))
+                .addOnFailureListener(e -> Toast.makeText(this, "Upload ảnh thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
 
-        // Get steps
-        List<String> steps = new ArrayList<>();
-        for (View view : stepViews) {
-            EditText edtStep = view.findViewById(R.id.edtStepDescription);
-            String step = edtStep.getText().toString().trim();
-            if (!step.isEmpty()) {
-                steps.add(step);
-            }
-        }
-
-        if (steps.isEmpty()) {
-            Toast.makeText(this, "Vui lòng thêm ít nhất một bước thực hiện", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Parse time
-        String timeStr = edtTime.getText().toString().trim();
-        int prepTime = 0;
-        int cookTime = 0;
-        if (timeStr.contains("phút")) {
-            try {
-                prepTime = Integer.parseInt(timeStr.replace(" phút", "").trim());
-            } catch (NumberFormatException e) {
-                prepTime = 30;
-            }
-        }
-
-        // Parse servings
-        int servings = 1;
-        try {
-            String servingsStr = edtServings.getText().toString().trim();
-            if (!servingsStr.isEmpty()) {
-                servings = Integer.parseInt(servingsStr);
-            }
-        } catch (NumberFormatException e) {
-            servings = 1;
-        }
-
-        // Generate recipe ID - use Firebase push key format
+    private void uploadRecipeWithImage(String imageUrl) {
         DatabaseReference recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
         String recipeId = recipesRef.push().getKey();
-        String currentTime = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).format(new Date());
-        String authorId = UserManager.getInstance().getCurrentUserId();
 
-        // Create Recipe object with nested ingredients and steps
         Recipe recipe = new Recipe();
         recipe.title = edtTitle.getText().toString().trim();
         recipe.description = edtDescription.getText().toString().trim();
-        recipe.category = ""; // Can be added later with a category selector
-        recipe.tags = ""; // Can be added later with tags input
-        recipe.prep_time = prepTime;
-        recipe.cook_time = cookTime;
-        recipe.servings = servings;
+        recipe.image_url = imageUrl;
         recipe.difficulty = spinnerDifficulty.getSelectedItem().toString();
-        recipe.rating = 0.0;
-        recipe.total_reviews = 0;
-        recipe.image_url = imageUri != null ? imageUri.toString() : "";
-        recipe.video_url = "";
-        recipe.author_id = authorId != null ? authorId : "";
-        recipe.created_at = currentTime;
-        recipe.updated_at = currentTime;
-        recipe.sync_status = 0;
+        recipe.author_id = UserManager.getInstance().getCurrentUserId();
+        recipe.created_at = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).format(new Date());
+        recipe.updated_at = recipe.created_at;
+        recipe.prep_time = 30;
+        recipe.cook_time = 0;
+        recipe.servings = 2;
 
-        // Create nested ingredients map
-        Map<String, Ingredient> ingredientsMap = new HashMap<>();
-        int ingIndex = 1;
+        Map<String, Ingredient> ingMap = new HashMap<>();
+        int i = 1;
         for (View view : ingredientViews) {
-            EditText edtName = view.findViewById(R.id.edtIngredientName);
-            EditText edtQuantity = view.findViewById(R.id.edtIngredientQuantity);
-            String name = edtName.getText().toString().trim();
-            String quantity = edtQuantity.getText().toString().trim();
-            if (!name.isEmpty() && !quantity.isEmpty()) {
-                Ingredient ingredient = new Ingredient();
-                ingredient.name = name;
-                ingredient.quantity = quantity;
-                ingredient.sync_status = 0;
-                // Use key format: ing_001, ing_002, etc.
-                String ingKey = "ing_" + String.format("%03d", ingIndex++);
-                ingredientsMap.put(ingKey, ingredient);
+            EditText n = view.findViewById(R.id.edtIngredientName);
+            EditText q = view.findViewById(R.id.edtIngredientQuantity);
+            if (!n.getText().toString().isEmpty() && !q.getText().toString().isEmpty()) {
+                Ingredient ing = new Ingredient();
+                ing.name = n.getText().toString();
+                ing.quantity = q.getText().toString();
+                ing.sync_status = 0;
+                ingMap.put("ing_" + String.format("%03d", i++), ing);
             }
         }
-        recipe.ingredients = ingredientsMap;
+        recipe.ingredients = ingMap;
 
-        // Create nested steps map
-        Map<String, Step> stepsMap = new HashMap<>();
-        int stepIndex = 1;
-        for (int i = 0; i < stepViews.size(); i++) {
-            View view = stepViews.get(i);
-            EditText edtStep = view.findViewById(R.id.edtStepDescription);
-            String instruction = edtStep.getText().toString().trim();
-            if (!instruction.isEmpty()) {
+        Map<String, Step> stepMap = new HashMap<>();
+        int s = 1;
+        for (View view : stepViews) {
+            EditText d = view.findViewById(R.id.edtStepDescription);
+            if (!d.getText().toString().isEmpty()) {
                 Step step = new Step();
-                step.step_number = stepIndex;
-                step.instruction = instruction;
+                step.step_number = s;
+                step.instruction = d.getText().toString();
                 step.image_url = "";
-                step.sync_status = 0;
-                // Use key format: step_001, step_002, etc.
-                String stepKey = "step_" + String.format("%03d", stepIndex++);
-                stepsMap.put(stepKey, step);
+                stepMap.put("step_" + String.format("%03d", s++), step);
             }
         }
-        recipe.steps = stepsMap;
+        recipe.steps = stepMap;
 
-        // Save to Firebase with nested structure
         recipesRef.child(recipeId).setValue(recipe)
-                .addOnSuccessListener(aVoid -> {
+                .addOnSuccessListener(a -> {
                     Toast.makeText(this, "Đã lưu công thức thành công", Toast.LENGTH_SHORT).show();
                     finish();
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Lỗi lưu công thức: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    android.util.Log.e("CreateRecipeActivity", "Error saving recipe: " + e.getMessage(), e);
-                });
+                .addOnFailureListener(e -> Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
-
 }

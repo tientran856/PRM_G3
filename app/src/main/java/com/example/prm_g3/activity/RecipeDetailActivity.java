@@ -303,7 +303,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
                 // Load image
                 Glide.with(RecipeDetailActivity.this)
                         .load(recipe.image_url)
-                        .placeholder(R.drawable.ic_home)
+                        .placeholder(R.drawable.placeholder)
+                        .error(R.drawable.placeholder)
                         .into(imgRecipe);
 
                 // Category tag
