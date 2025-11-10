@@ -23,7 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.prm_g3.R;
 import com.example.prm_g3.RecipesListActivity;
 import com.example.prm_g3.UserManager;
-import com.example.prm_g3.adapters.RecipeGridAdapter;
+import com.example.prm_g3.adapters.MyRecipeGridAdapter;
 import com.example.prm_g3.models.Recipe;
 import com.example.prm_g3.models.User;
 import com.google.firebase.auth.FirebaseAuth;
@@ -46,7 +46,7 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView btnViewAllRecipes, tvNoRecipes;
     private Button btnLogout, btnEditProfile;
     private RecyclerView rvMyRecipes;
-    private RecipeGridAdapter myRecipesAdapter;
+    private MyRecipeGridAdapter myRecipesAdapter;
     private List<Recipe> myRecipesList;
     private List<String> myRecipeIds;
 
@@ -127,7 +127,11 @@ public class ProfileActivity extends AppCompatActivity {
 
         myRecipesList = new ArrayList<>();
         myRecipeIds = new ArrayList<>();
-        myRecipesAdapter = new RecipeGridAdapter(this, myRecipesList, myRecipeIds);
+        myRecipesAdapter = new MyRecipeGridAdapter(this, myRecipesList, myRecipeIds);
+        myRecipesAdapter.setOnRecipeDeletedListener(() -> {
+            // Reload recipes after deletion
+            loadMyRecipes();
+        });
 
         GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
         rvMyRecipes.setLayoutManager(layoutManager);

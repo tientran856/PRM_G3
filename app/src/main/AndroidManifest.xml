@@ -35,6 +35,7 @@
         <activity android:name=".activity.FavoritesActivity" />
         <activity android:name=".activity.ProfileActivity" />
         <activity android:name=".activity.EditProfileActivity" />
+        <activity android:name=".activity.UserProfileActivity" />
 
     </application>
 

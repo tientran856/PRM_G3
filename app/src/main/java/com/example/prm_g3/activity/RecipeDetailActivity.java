@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.example.prm_g3.FavoritesManager;
 import com.example.prm_g3.R;
+import com.example.prm_g3.RecipesListActivity;
 import com.example.prm_g3.ShareRecipeDialog;
 import com.example.prm_g3.UserManager;
 import com.example.prm_g3.adapters.CommentAdapter;
@@ -44,6 +45,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
     private LinearLayout authorInfoLayout;
     private de.hdodenhof.circleimageview.CircleImageView imgAuthorAvatar;
     private TextView tvAuthorName;
+    private String currentAuthorId = null;
     private LinearLayout containerIngredients, containerSteps, containerComments, commentsList;
     private LinearLayout containerTags;
     private EditText edtComment;
@@ -202,6 +204,18 @@ public class RecipeDetailActivity extends AppCompatActivity {
             shareDialog.show();
         });
 
+        // Author avatar and name click - view author profile
+        imgAuthorAvatar.setOnClickListener(v -> {
+            if (currentAuthorId != null && !currentAuthorId.isEmpty()) {
+                viewAuthorProfile(currentAuthorId);
+            }
+        });
+        tvAuthorName.setOnClickListener(v -> {
+            if (currentAuthorId != null && !currentAuthorId.isEmpty()) {
+                viewAuthorProfile(currentAuthorId);
+            }
+        });
+
         // Tab navigation
         tabIngredients.setOnClickListener(v -> switchTab(0));
         tabSteps.setOnClickListener(v -> switchTab(1));
@@ -344,6 +358,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
                         .placeholder(R.drawable.placeholder)
                         .error(R.drawable.placeholder)
                         .into(imgRecipe);
+
+                // Store author ID
+                currentAuthorId = recipe.author_id;
 
                 // Load author info
                 if (recipe.author_id != null && !recipe.author_id.isEmpty()) {
@@ -613,6 +630,13 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
     private void updateFavoriteButton() {
         btnFavorite.setSelected(favoritesManager.isFavorite(recipeId));
+    }
+
+    private void viewAuthorProfile(String authorId) {
+        // Navigate to UserProfileActivity to view author's profile and recipes
+        Intent intent = new Intent(RecipeDetailActivity.this, UserProfileActivity.class);
+        intent.putExtra("userId", authorId);
+        startActivity(intent);
     }
 
     private String formatTimeAgo(String createdAt) {

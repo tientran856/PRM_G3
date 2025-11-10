@@ -32,10 +32,11 @@
                 <!-- Author Info -->
                 <LinearLayout android:id="@+id/authorInfoLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="center_vertical" android:orientation="horizontal" android:visibility="gone">
 
-                    <de.hdodenhof.circleimageview.CircleImageView android:id="@+id/imgAuthorAvatar" android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/ic_user" app:civ_border_color="#E0E0E0" app:civ_border_width="1dp" />
+                    <de.hdodenhof.circleimageview.CircleImageView android:id="@+id/imgAuthorAvatar" android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/ic_user" app:civ_border_color="#E0E0E0" app:civ_border_width="1dp" android:clickable="true" android:focusable="true" />
 
-                    <TextView android:id="@+id/tvAuthorName" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:text="Tên tác giả" android:textColor="#666666" android:textSize="14sp" />
+                    <TextView android:id="@+id/tvAuthorName" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="12dp" android:layout_weight="1" android:text="Tên tác giả" android:textColor="#666666" android:textSize="14sp" android:clickable="true" android:focusable="true" />
                 </LinearLayout>
+
 
                 <!-- Rating -->
                 <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:gravity="center_vertical" android:orientation="horizontal">

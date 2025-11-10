@@ -1,0 +1,142 @@
+package com.example.prm_g3.adapters;
+
+import android.content.Context;
+import android.content.Intent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
+import com.example.prm_g3.R;
+import com.example.prm_g3.activity.CreateRecipeActivity;
+import com.example.prm_g3.activity.RecipeDetailActivity;
+import com.example.prm_g3.models.Recipe;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import java.util.List;
+
+public class MyRecipeGridAdapter extends RecyclerView.Adapter<MyRecipeGridAdapter.ViewHolder> {
+    private Context context;
+    private List<Recipe> recipes;
+    private List<String> recipeIds;
+    private OnRecipeDeletedListener onRecipeDeletedListener;
+
+    public interface OnRecipeDeletedListener {
+        void onRecipeDeleted();
+    }
+
+    public MyRecipeGridAdapter(Context context, List<Recipe> recipes, List<String> recipeIds) {
+        this.context = context;
+        this.recipes = recipes;
+        this.recipeIds = recipeIds;
+    }
+
+    public void setOnRecipeDeletedListener(OnRecipeDeletedListener listener) {
+        this.onRecipeDeletedListener = listener;
+    }
+
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_my_recipe_grid, parent, false);
+        return new ViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Recipe r = recipes.get(position);
+        String recipeId = recipeIds.get(position);
+
+        holder.tvTitle.setText(r.title);
+
+        // Format time
+        int totalTime = r.prep_time + r.cook_time;
+        if (totalTime >= 60) {
+            int hours = totalTime / 60;
+            int minutes = totalTime % 60;
+            if (minutes > 0) {
+                holder.tvTime.setText(hours + " giờ " + minutes + " phút");
+            } else {
+                holder.tvTime.setText(hours + " giờ");
+            }
+        } else {
+            holder.tvTime.setText(totalTime + " phút");
+        }
+
+        String ratingStr = String.format("%.1f", r.rating);
+        holder.tvRating.setText(ratingStr);
+        holder.tvRatingText.setText(ratingStr);
+
+        Glide.with(context)
+                .load(r.image_url)
+                .placeholder(R.drawable.ic_home)
+                .into(holder.imgRecipe);
+
+        // Edit button
+        holder.btnEdit.setOnClickListener(v -> {
+            Intent intent = new Intent(context, CreateRecipeActivity.class);
+            intent.putExtra("recipeId", recipeId);
+            intent.putExtra("editMode", true);
+            context.startActivity(intent);
+        });
+
+        // Delete button
+        holder.btnDelete.setOnClickListener(v -> {
+            new androidx.appcompat.app.AlertDialog.Builder(context)
+                    .setTitle("Xóa công thức")
+                    .setMessage("Bạn có chắc chắn muốn xóa công thức này? Hành động này không thể hoàn tác.")
+                    .setPositiveButton("Xóa", (dialog, which) -> {
+                        DatabaseReference recipeRef = FirebaseDatabase.getInstance()
+                                .getReference("recipes").child(recipeId);
+                        recipeRef.removeValue()
+                                .addOnSuccessListener(aVoid -> {
+                                    android.widget.Toast.makeText(context, "Đã xóa công thức",
+                                            android.widget.Toast.LENGTH_SHORT).show();
+                                    if (onRecipeDeletedListener != null) {
+                                        onRecipeDeletedListener.onRecipeDeleted();
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    android.widget.Toast.makeText(context,
+                                            "Lỗi xóa công thức: " + e.getMessage(),
+                                            android.widget.Toast.LENGTH_SHORT).show();
+                                });
+                    })
+                    .setNegativeButton("Hủy", null)
+                    .show();
+        });
+
+        // Item click - view recipe detail
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, RecipeDetailActivity.class);
+            intent.putExtra("recipeId", recipeId);
+            context.startActivity(intent);
+        });
+    }
+
+    @Override
+    public int getItemCount() {
+        return recipes.size();
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        ImageView imgRecipe;
+        TextView tvTitle, tvTime, tvRating, tvRatingText;
+        Button btnEdit, btnDelete;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            imgRecipe = itemView.findViewById(R.id.imgRecipe);
+            tvTitle = itemView.findViewById(R.id.tvTitle);
+            tvTime = itemView.findViewById(R.id.tvTime);
+            tvRating = itemView.findViewById(R.id.tvRating);
+            tvRatingText = itemView.findViewById(R.id.tvRatingText);
+            btnEdit = itemView.findViewById(R.id.btnEdit);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
+        }
+    }
+}
