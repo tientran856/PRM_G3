@@ -329,21 +329,30 @@ public class MealPlanActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
+                Intent intent = new Intent(MealPlanActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 finish();
                 return true;
             } else if (id == R.id.nav_recipes) {
                 Intent intent = new Intent(MealPlanActivity.this, RecipesListActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             } else if (id == R.id.nav_plan) {
                 return true;
             } else if (id == R.id.nav_favorite) {
                 Intent intent = new Intent(MealPlanActivity.this, FavoritesActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             } else if (id == R.id.nav_profile) {
                 Intent intent = new Intent(MealPlanActivity.this, ProfileActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             }
             return false;

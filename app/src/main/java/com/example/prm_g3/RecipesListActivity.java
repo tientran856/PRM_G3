@@ -26,6 +26,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.prm_g3.activity.CreateRecipeActivity;
 import com.example.prm_g3.activity.FavoritesActivity;
+import com.example.prm_g3.activity.MainActivity;
 import com.example.prm_g3.activity.MealPlanActivity;
 import com.example.prm_g3.activity.ProfileActivity;
 import com.example.prm_g3.adapters.RecipeGridAdapter;
@@ -280,21 +281,30 @@ public class RecipesListActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
+                Intent intent = new Intent(RecipesListActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 finish();
                 return true;
             } else if (id == R.id.nav_recipes) {
                 return true;
             } else if (id == R.id.nav_plan) {
                 Intent intent = new Intent(RecipesListActivity.this, MealPlanActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             } else if (id == R.id.nav_favorite) {
                 Intent intent = new Intent(RecipesListActivity.this, FavoritesActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             } else if (id == R.id.nav_profile) {
                 Intent intent = new Intent(RecipesListActivity.this, ProfileActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             }
             return false;

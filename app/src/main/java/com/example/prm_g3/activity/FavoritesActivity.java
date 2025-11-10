@@ -6,12 +6,16 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.prm_g3.FavoritesManager;
 import com.example.prm_g3.R;
@@ -48,6 +52,28 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
 
         try {
             setContentView(R.layout.activity_favorites);
+
+            // Configure status bar to show light icons (white) on dark background
+            setupStatusBar();
+
+            // Handle system window insets for status bar
+            View rootView = findViewById(android.R.id.content);
+            if (rootView != null) {
+                rootView.setOnApplyWindowInsetsListener((v, insets) -> {
+                    int statusBarHeight = insets.getSystemWindowInsetTop();
+                    LinearLayout headerLayout = findViewById(R.id.headerLayout);
+                    if (headerLayout != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        // Adjust padding to account for status bar
+                        headerLayout.setPadding(
+                                headerLayout.getPaddingLeft(),
+                                Math.max(statusBarHeight, (int) (24 * getResources().getDisplayMetrics().density)),
+                                headerLayout.getPaddingRight(),
+                                headerLayout.getPaddingBottom());
+                    }
+                    return insets;
+                });
+            }
+
             initViews();
             setupRecyclerView();
 
@@ -63,6 +89,29 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
             android.util.Log.e("FavoritesActivity", "Error in onCreate: ", e);
             Toast.makeText(this, "Lỗi khởi tạo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             finish();
+        }
+    }
+
+    private void setupStatusBar() {
+        // Configure status bar to show light icons (white) on dark background
+        // Set status bar background to dark (to match header)
+        getWindow().setStatusBarColor(Color.parseColor("#0D0D1A"));
+
+        // Use WindowInsetsControllerCompat for modern approach (API 23+)
+        WindowInsetsControllerCompat windowInsetsController = WindowCompat.getInsetsController(getWindow(),
+                getWindow().getDecorView());
+
+        if (windowInsetsController != null) {
+            // Show light status bar icons (white icons on dark background)
+            windowInsetsController.setAppearanceLightStatusBars(false);
+        }
+        // Fallback for older devices (API 23-29)
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            View decorView = getWindow().getDecorView();
+            int flags = decorView.getSystemUiVisibility();
+            // Disable light status bar (keep white icons on dark background)
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            decorView.setSystemUiVisibility(flags);
         }
     }
 
@@ -153,8 +202,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
                 adapter.notifyDataSetChanged();
             }
 
-
-            final int[] loadedCount = {0};
+            final int[] loadedCount = { 0 };
             final int totalCount = favoriteIds.size();
 
             for (String recipeId : favoriteIds) {
@@ -245,29 +293,37 @@ public class FavoritesActivity extends AppCompatActivity implements RecipeGridAd
     }
 
     private void setupBottomNav() {
-        com.google.android.material.bottomnavigation.BottomNavigationView bottomNavigationView =
-            findViewById(R.id.bottomNavigation);
+        com.google.android.material.bottomnavigation.BottomNavigationView bottomNavigationView = findViewById(
+                R.id.bottomNavigation);
         bottomNavigationView.setSelectedItemId(R.id.nav_favorite);
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
                 Intent intent = new Intent(FavoritesActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             } else if (id == R.id.nav_recipes) {
                 Intent intent = new Intent(FavoritesActivity.this, RecipesListActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             } else if (id == R.id.nav_plan) {
                 Intent intent = new Intent(FavoritesActivity.this, MealPlanActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             } else if (id == R.id.nav_favorite) {
                 return true;
             } else if (id == R.id.nav_profile) {
                 Intent intent = new Intent(FavoritesActivity.this, ProfileActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             }
             return false;

@@ -1,197 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#F5F5F5">
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="#F5F5F5">
 
-<ScrollView
-    android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_weight="1">
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-        <!-- Header -->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:background="@color/primary_color"
-            android:elevation="4dp">
+            <!-- Header with black background -->
+            <LinearLayout android:id="@+id/headerLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#0D0D1A" android:elevation="4dp" android:orientation="vertical" android:paddingTop="?attr/actionBarSize">
 
-            <ImageView
-                android:id="@+id/btnBack"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_centerVertical="true"
-                android:layout_marginStart="16dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_arrow_back_white" />
+                <RelativeLayout android:layout_width="match_parent" android:layout_height="60dp" android:background="#0D0D1A">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:text="Cá nhân"
-                android:textColor="@android:color/white"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                    <ImageView android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp" android:layout_centerVertical="true" android:layout_marginStart="16dp" android:background="?attr/selectableItemBackgroundBorderless" android:clickable="true" android:focusable="true" android:padding="8dp" android:src="@drawable/ic_arrow_back_white" />
 
-        </RelativeLayout>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerInParent="true" android:text="Cá nhân" android:textColor="@android:color/white" android:textSize="18sp" android:textStyle="bold" />
 
-        <!-- Profile Content -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="24dp">
-
-            <!-- Avatar Section -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:layout_marginBottom="32dp">
-
-                <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/imgAvatar"
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:src="@drawable/ic_user"
-                    app:civ_border_color="@color/primary_color"
-                    app:civ_border_width="3dp" />
-
-                <TextView
-                    android:id="@+id/tvUserName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Tên người dùng"
-                    android:textColor="@color/text_primary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvUserEmail"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="email@example.com"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="16sp" />
-
+                </RelativeLayout>
             </LinearLayout>
 
-            <!-- Info Section -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_round_white"
-                android:elevation="2dp"
-                android:orientation="vertical"
-                android:padding="20dp"
-                android:layout_marginBottom="24dp">
+            <!-- Profile Content -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingTop="16dp" android:paddingHorizontal="24dp" android:paddingBottom="24dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Thông tin cá nhân"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="16dp" />
+                <!-- Avatar Section -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical" android:layout_marginBottom="32dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Giới thiệu"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="4dp" />
+                    <de.hdodenhof.circleimageview.CircleImageView android:id="@+id/imgAvatar" android:layout_width="120dp" android:layout_height="120dp" android:src="@drawable/ic_user" app:civ_border_color="@color/primary_color" app:civ_border_width="3dp" />
 
-                <TextView
-                    android:id="@+id/tvUserBio"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Chưa có thông tin giới thiệu"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    android:layout_marginBottom="16dp" />
+                    <TextView android:id="@+id/tvUserName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="Tên người dùng" android:textColor="@color/text_primary" android:textSize="24sp" android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ngày tham gia"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="4dp" />
+                    <TextView android:id="@+id/tvUserEmail" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="email@example.com" android:textColor="@color/text_secondary" android:textSize="16sp" />
 
-                <TextView
-                    android:id="@+id/tvJoinedDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="01/01/2025"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp" />
+                </LinearLayout>
 
-            </LinearLayout>
+                <!-- Info Section -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_round_white" android:elevation="2dp" android:orientation="vertical" android:padding="20dp" android:layout_marginBottom="24dp">
 
-            <!-- Action Buttons -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="32dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Thông tin cá nhân" android:textColor="@color/text_primary" android:textSize="18sp" android:textStyle="bold" android:layout_marginBottom="16dp" />
 
-                <Button
-                    android:id="@+id/btnEditProfile"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:background="@drawable/button_secondary"
-                    android:text="Chỉnh sửa hồ sơ"
-                    android:textColor="@color/primary_color"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="16dp"
-                    android:elevation="2dp" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Giới thiệu" android:textColor="@color/text_secondary" android:textSize="14sp" android:textStyle="bold" android:layout_marginBottom="4dp" />
 
-                <Button
-                    android:id="@+id/btnLogout"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:background="@drawable/button_primary"
-                    android:text="Đăng xuất"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:elevation="2dp" />
+                    <TextView android:id="@+id/tvUserBio" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Chưa có thông tin giới thiệu" android:textColor="@color/text_primary" android:textSize="16sp" android:layout_marginBottom="16dp" />
+
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ngày tham gia" android:textColor="@color/text_secondary" android:textSize="14sp" android:textStyle="bold" android:layout_marginBottom="4dp" />
+
+                    <TextView android:id="@+id/tvJoinedDate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="01/01/2025" android:textColor="@color/text_primary" android:textSize="16sp" />
+
+                </LinearLayout>
+
+                <!-- Action Buttons -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="32dp">
+
+                    <Button android:id="@+id/btnEditProfile" android:layout_width="match_parent" android:layout_height="56dp" android:background="@drawable/button_secondary" android:text="Chỉnh sửa hồ sơ" android:textColor="@color/primary_color" android:textSize="16sp" android:textStyle="bold" android:layout_marginBottom="16dp" android:elevation="2dp" />
+
+                    <Button android:id="@+id/btnLogout" android:layout_width="match_parent" android:layout_height="56dp" android:background="@drawable/button_primary" android:text="Đăng xuất" android:textColor="@android:color/white" android:textSize="16sp" android:textStyle="bold" android:elevation="2dp" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
         </LinearLayout>
 
-    </LinearLayout>
+    </ScrollView>
 
-</ScrollView>
-
-<!-- Bottom Navigation -->
-<com.google.android.material.bottomnavigation.BottomNavigationView
-    android:id="@+id/bottomNavigation"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@android:color/white"
-    android:elevation="8dp"
-    app:menu="@menu/bottom_nav_menu" />
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView android:id="@+id/bottomNavigation" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@android:color/white" android:elevation="8dp" app:itemIconTint="@color/nav_selector" app:itemTextColor="@color/nav_selector" app:labelVisibilityMode="labeled" app:menu="@menu/bottom_nav_menu" />
 
 </LinearLayout>
 

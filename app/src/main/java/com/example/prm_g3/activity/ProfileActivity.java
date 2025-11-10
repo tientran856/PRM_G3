@@ -5,11 +5,17 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.example.prm_g3.R;
 import com.example.prm_g3.RecipesListActivity;
@@ -40,11 +46,55 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        // Configure status bar to show light icons (white) on dark background
+        setupStatusBar();
+
+        // Handle system window insets for status bar
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            rootView.setOnApplyWindowInsetsListener((v, insets) -> {
+                int statusBarHeight = insets.getSystemWindowInsetTop();
+                LinearLayout headerLayout = findViewById(R.id.headerLayout);
+                if (headerLayout != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    // Adjust padding to account for status bar
+                    headerLayout.setPadding(
+                            headerLayout.getPaddingLeft(),
+                            Math.max(statusBarHeight, (int) (24 * getResources().getDisplayMetrics().density)),
+                            headerLayout.getPaddingRight(),
+                            headerLayout.getPaddingBottom());
+                }
+                return insets;
+            });
+        }
+
         initViews();
         setupAuth();
         loadUserProfile();
         setupListeners();
         setupBottomNav();
+    }
+
+    private void setupStatusBar() {
+        // Configure status bar to show light icons (white) on dark background
+        // Set status bar background to dark (to match header)
+        getWindow().setStatusBarColor(Color.parseColor("#0D0D1A"));
+
+        // Use WindowInsetsControllerCompat for modern approach (API 23+)
+        WindowInsetsControllerCompat windowInsetsController = WindowCompat.getInsetsController(getWindow(),
+                getWindow().getDecorView());
+
+        if (windowInsetsController != null) {
+            // Show light status bar icons (white icons on dark background)
+            windowInsetsController.setAppearanceLightStatusBars(false);
+        }
+        // Fallback for older devices (API 23-29)
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            View decorView = getWindow().getDecorView();
+            int flags = decorView.getSystemUiVisibility();
+            // Disable light status bar (keep white icons on dark background)
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            decorView.setSystemUiVisibility(flags);
+        }
     }
 
     private void initViews() {
@@ -96,20 +146,21 @@ public class ProfileActivity extends AppCompatActivity {
     private void createUserProfile() {
         if (UserManager.getInstance().isLoggedIn()) {
             User newUser = new User(
-                currentUserId,
-                UserManager.getInstance().getCurrentUserDisplayName() != null ?
-                    UserManager.getInstance().getCurrentUserDisplayName() : "Người dùng",
-                UserManager.getInstance().getCurrentUserEmail() != null ?
-                    UserManager.getInstance().getCurrentUserEmail() : ""
-            );
+                    currentUserId,
+                    UserManager.getInstance().getCurrentUserDisplayName() != null
+                            ? UserManager.getInstance().getCurrentUserDisplayName()
+                            : "Người dùng",
+                    UserManager.getInstance().getCurrentUserEmail() != null
+                            ? UserManager.getInstance().getCurrentUserEmail()
+                            : "");
 
             usersRef.child(currentUserId).setValue(newUser)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Tạo hồ sơ người dùng thành công", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Lỗi tạo hồ sơ người dùng", Toast.LENGTH_SHORT).show();
-                });
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Tạo hồ sơ người dùng thành công", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Lỗi tạo hồ sơ người dùng", Toast.LENGTH_SHORT).show();
+                    });
         }
     }
 
@@ -167,11 +218,11 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void showLogoutDialog() {
         new AlertDialog.Builder(this)
-            .setTitle("Đăng xuất")
-            .setMessage("Bạn có chắc chắn muốn đăng xuất?")
-            .setPositiveButton("Đăng xuất", (dialog, which) -> performLogout())
-            .setNegativeButton("Hủy", null)
-            .show();
+                .setTitle("Đăng xuất")
+                .setMessage("Bạn có chắc chắn muốn đăng xuất?")
+                .setPositiveButton("Đăng xuất", (dialog, which) -> performLogout())
+                .setNegativeButton("Hủy", null)
+                .show();
     }
 
     private void performLogout() {
@@ -204,19 +255,27 @@ public class ProfileActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
                 Intent intent = new Intent(ProfileActivity.this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             } else if (id == R.id.nav_recipes) {
                 Intent intent = new Intent(ProfileActivity.this, RecipesListActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             } else if (id == R.id.nav_plan) {
                 Intent intent = new Intent(ProfileActivity.this, MealPlanActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             } else if (id == R.id.nav_favorite) {
                 Intent intent = new Intent(ProfileActivity.this, FavoritesActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
+                finish();
                 return true;
             } else if (id == R.id.nav_profile) {
                 return true; // Already on profile page

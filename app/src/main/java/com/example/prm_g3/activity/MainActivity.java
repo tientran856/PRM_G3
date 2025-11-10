@@ -306,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                Toast.makeText(this, "Trang chủ", Toast.LENGTH_SHORT).show();
+                // Already on home page
                 return true;
             } else if (id == R.id.nav_recipes) {
                 Intent intent = new Intent(MainActivity.this, RecipesListActivity.class);
