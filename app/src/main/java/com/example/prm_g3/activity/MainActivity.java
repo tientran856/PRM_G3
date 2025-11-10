@@ -1,4 +1,4 @@
-package com.example.prm_g3;
+package com.example.prm_g3.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,7 +13,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.prm_g3.activity.AuthActivity;
+import com.example.prm_g3.R;
+import com.example.prm_g3.RecipesListActivity;
+import com.example.prm_g3.UserManager;
 import com.example.prm_g3.adapters.RecipeAdapter;
 import com.example.prm_g3.adapters.RecipeGridAdapter;
 import com.example.prm_g3.models.Recipe;
@@ -103,10 +105,15 @@ public class MainActivity extends AppCompatActivity {
                 List<Recipe> allRecipes = new ArrayList<>();
                 List<String> allRecipeIds = new ArrayList<>();
                 for (DataSnapshot data : snapshot.getChildren()) {
-                    Recipe r = data.getValue(Recipe.class);
-                    if (r != null) {
-                        allRecipes.add(r);
-                        allRecipeIds.add(data.getKey());
+                    try {
+                        Recipe r = data.getValue(Recipe.class);
+                        if (r != null) {
+                            allRecipes.add(r);
+                            allRecipeIds.add(data.getKey());
+                        }
+                    } catch (Exception e) {
+                        android.util.Log.e("MainActivity", "Error parsing recipe: " + data.getKey() + " - " + e.getMessage(), e);
+                        // Skip this recipe and continue with others
                     }
                 }
 

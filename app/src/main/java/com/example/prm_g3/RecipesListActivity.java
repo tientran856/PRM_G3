@@ -17,6 +17,10 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.example.prm_g3.activity.CreateRecipeActivity;
+import com.example.prm_g3.activity.FavoritesActivity;
+import com.example.prm_g3.activity.MealPlanActivity;
+import com.example.prm_g3.activity.ProfileActivity;
 import com.example.prm_g3.adapters.RecipeGridAdapter;
 import com.example.prm_g3.models.Recipe;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -124,10 +128,15 @@ public class RecipesListActivity extends AppCompatActivity {
                 recipeIds.clear();
 
                 for (DataSnapshot data : snapshot.getChildren()) {
-                    Recipe r = data.getValue(Recipe.class);
-                    if (r != null) {
-                        recipeList.add(r);
-                        recipeIds.add(data.getKey());
+                    try {
+                        Recipe r = data.getValue(Recipe.class);
+                        if (r != null) {
+                            recipeList.add(r);
+                            recipeIds.add(data.getKey());
+                        }
+                    } catch (Exception e) {
+                        Log.e("RecipesListActivity", "Error parsing recipe: " + data.getKey() + " - " + e.getMessage(), e);
+                        // Skip this recipe and continue with others
                     }
                 }
 

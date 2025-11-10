@@ -1,4 +1,4 @@
-package com.example.prm_g3;
+package com.example.prm_g3.activity;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +18,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.prm_g3.MealPlanManager;
+import com.example.prm_g3.R;
+import com.example.prm_g3.RecipesListActivity;
 import com.example.prm_g3.adapters.DayAdapter;
 import com.example.prm_g3.adapters.MealCategoryAdapter;
 import com.example.prm_g3.adapters.RecipeGridAdapter;
@@ -25,7 +28,6 @@ import com.example.prm_g3.models.MealCategory;
 import com.example.prm_g3.models.Recipe;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -198,10 +200,15 @@ public class MealPlanActivity extends AppCompatActivity {
                 recipeIds.clear();
                 
                 for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
-                    Recipe r = data.getValue(Recipe.class);
-                    if (r != null) {
-                        allRecipes.add(r);
-                        recipeIds.add(data.getKey());
+                    try {
+                        Recipe r = data.getValue(Recipe.class);
+                        if (r != null) {
+                            allRecipes.add(r);
+                            recipeIds.add(data.getKey());
+                        }
+                    } catch (Exception e) {
+                        android.util.Log.e("MealPlanActivity", "Error parsing recipe: " + data.getKey() + " - " + e.getMessage(), e);
+                        // Skip this recipe and continue with others
                     }
                 }
                 

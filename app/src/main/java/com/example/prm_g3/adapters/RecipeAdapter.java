@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.prm_g3.R;
-import com.example.prm_g3.RecipeDetailActivity;
+import com.example.prm_g3.activity.RecipeDetailActivity;
 import com.example.prm_g3.models.Recipe;
 import com.example.prm_g3.FavoritesManager;
 import java.util.ArrayList;

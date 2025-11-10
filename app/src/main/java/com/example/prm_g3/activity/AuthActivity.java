@@ -152,7 +152,7 @@ public class AuthActivity extends AppCompatActivity {
     }
 
     private void goToMain() {
-        startActivity(new Intent(this, com.example.prm_g3.MainActivity.class));
+        startActivity(new Intent(this, MainActivity.class));
         finish();
     }
 }
