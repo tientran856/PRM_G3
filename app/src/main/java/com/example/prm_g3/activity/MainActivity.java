@@ -28,7 +28,10 @@ import com.google.firebase.auth.FirebaseAuth; // THÊM DÒNG NÀY
 import com.google.firebase.database.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,10 +46,11 @@ public class MainActivity extends AppCompatActivity {
     private List<String> allRecipeIds;
     private EditText edtSearch;
     private TextView tvGreeting;
-    private TextView btnCategoryMain, btnCategoryDessert, btnCategoryFast;
     private LinearLayout searchBarLayout;
+    private LinearLayout categoryContainer;
     private DatabaseReference recipesRef;
     private String selectedCategory = null;
+    private List<TextView> categoryButtons = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,9 +67,7 @@ public class MainActivity extends AppCompatActivity {
         rvPopularRecipes = findViewById(R.id.rvPopularRecipes);
         edtSearch = findViewById(R.id.edtSearch);
         tvGreeting = findViewById(R.id.tvGreeting);
-        btnCategoryMain = findViewById(R.id.btnCategoryMain);
-        btnCategoryDessert = findViewById(R.id.btnCategoryDessert);
-        btnCategoryFast = findViewById(R.id.btnCategoryFast);
+        categoryContainer = findViewById(R.id.categoryContainer);
         searchBarLayout = findViewById(R.id.searchBarLayout);
         recipeList = new ArrayList<>();
         popularRecipeList = new ArrayList<>();
@@ -92,7 +94,6 @@ public class MainActivity extends AppCompatActivity {
 
         setupBottomNav();
         setupSearch();
-        setupFilters();
     }
 
     @Override
@@ -132,47 +133,24 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Apply category filter if selected
-                List<RecipeWithId> filteredRecipeWithIds = new ArrayList<>();
-                for (int i = 0; i < allRecipes.size(); i++) {
-                    Recipe recipe = allRecipes.get(i);
-                    if (selectedCategory == null
-                            || (recipe.category != null && recipe.category.equals(selectedCategory))) {
-                        filteredRecipeWithIds.add(new RecipeWithId(recipe, allRecipeIds.get(i)));
+                // Extract unique categories from recipes
+                Set<String> categoriesSet = new HashSet<>();
+                for (Recipe recipe : allRecipes) {
+                    if (recipe.category != null && !recipe.category.trim().isEmpty()) {
+                        categoriesSet.add(recipe.category.trim());
                     }
                 }
 
-                // Featured recipes: top 3 highest rated from filtered recipes
-                List<RecipeWithId> recipeWithIds = new ArrayList<>(filteredRecipeWithIds);
-                recipeWithIds.sort((a, b) -> Double.compare(b.recipe.rating, a.recipe.rating));
+                // Update category filter buttons
+                updateCategoryFilters(new ArrayList<>(categoriesSet));
 
-                recipeList.clear();
-                popularRecipeList.clear();
-                featuredRecipeIds.clear();
-                popularRecipeIds.clear();
+                // Apply category filter and update recipes
+                applyCategoryFilter();
 
-                int featuredCount = Math.min(3, recipeWithIds.size());
-                for (int i = 0; i < featuredCount; i++) {
-                    recipeList.add(recipeWithIds.get(i).recipe);
-                    featuredRecipeIds.add(recipeWithIds.get(i).recipeId);
+                // Highlight "All" button by default if no category is selected
+                if (selectedCategory == null && !categoryButtons.isEmpty()) {
+                    setSelectedFilter(categoryButtons.get(0)); // First button is "Tất cả"
                 }
-
-                // Popular recipes: all remaining recipes (or all if less than 3)
-                if (recipeWithIds.size() > featuredCount) {
-                    for (int i = featuredCount; i < recipeWithIds.size(); i++) {
-                        popularRecipeList.add(recipeWithIds.get(i).recipe);
-                        popularRecipeIds.add(recipeWithIds.get(i).recipeId);
-                    }
-                } else {
-                    // If we have less than 3 recipes, show all in popular
-                    for (RecipeWithId rwi : recipeWithIds) {
-                        popularRecipeList.add(rwi.recipe);
-                        popularRecipeIds.add(rwi.recipeId);
-                    }
-                }
-
-                adapter.notifyDataSetChanged();
-                popularAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -197,45 +175,67 @@ public class MainActivity extends AppCompatActivity {
         edtSearch.setOnClickListener(searchClickListener);
     }
 
-    private void setupFilters() {
-        // Reset all button backgrounds
-        resetFilterButtons();
+    private void updateCategoryFilters(List<String> categories) {
+        // Clear existing buttons
+        categoryContainer.removeAllViews();
+        categoryButtons.clear();
 
-        btnCategoryMain.setOnClickListener(v -> {
-            if (selectedCategory != null && selectedCategory.equals("Món chính")) {
-                // Deselect if already selected
-                selectedCategory = null;
-                resetFilterButtons();
-            } else {
-                selectedCategory = "Món chính";
-                setSelectedFilter(btnCategoryMain);
-            }
+        // Sort categories alphabetically
+        Collections.sort(categories);
+
+        // Create "All" button first
+        TextView allButton = createCategoryButton("Tất cả");
+        allButton.setOnClickListener(v -> {
+            selectedCategory = null;
+            resetFilterButtons();
+            setSelectedFilter(allButton);
             applyCategoryFilter();
         });
+        categoryContainer.addView(allButton);
+        categoryButtons.add(allButton);
 
-        btnCategoryDessert.setOnClickListener(v -> {
-            if (selectedCategory != null && selectedCategory.equals("Món tráng miệng")) {
-                // Deselect if already selected
-                selectedCategory = null;
-                resetFilterButtons();
-            } else {
-                selectedCategory = "Món tráng miệng";
-                setSelectedFilter(btnCategoryDessert);
-            }
-            applyCategoryFilter();
-        });
+        // Create buttons for each category
+        for (String category : categories) {
+            TextView categoryButton = createCategoryButton(category);
+            categoryButton.setOnClickListener(v -> {
+                if (selectedCategory != null && selectedCategory.equals(category)) {
+                    // Deselect if already selected - go back to "All"
+                    selectedCategory = null;
+                    resetFilterButtons();
+                    // Highlight "All" button (first button)
+                    if (!categoryButtons.isEmpty()) {
+                        setSelectedFilter(categoryButtons.get(0));
+                    }
+                } else {
+                    selectedCategory = category;
+                    resetFilterButtons();
+                    setSelectedFilter(categoryButton);
+                }
+                applyCategoryFilter();
+            });
+            categoryContainer.addView(categoryButton);
+            categoryButtons.add(categoryButton);
+        }
+    }
 
-        btnCategoryFast.setOnClickListener(v -> {
-            if (selectedCategory != null && selectedCategory.equals("Món ăn nhanh")) {
-                // Deselect if already selected
-                selectedCategory = null;
-                resetFilterButtons();
-            } else {
-                selectedCategory = "Món ăn nhanh";
-                setSelectedFilter(btnCategoryFast);
-            }
-            applyCategoryFilter();
-        });
+    private TextView createCategoryButton(String text) {
+        TextView button = new TextView(this);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.setMarginEnd((int) (8 * getResources().getDisplayMetrics().density));
+        button.setLayoutParams(params);
+        button.setBackgroundResource(R.drawable.category_button_bg);
+        button.setGravity(android.view.Gravity.CENTER);
+        int padding = (int) (16 * getResources().getDisplayMetrics().density);
+        button.setPadding(padding, (int) (8 * getResources().getDisplayMetrics().density),
+                padding, (int) (8 * getResources().getDisplayMetrics().density));
+        button.setText(text);
+        button.setTextColor(Color.parseColor("#333333"));
+        button.setTextSize(13);
+        button.setClickable(true);
+        button.setFocusable(true);
+        return button;
     }
 
     private void applyCategoryFilter() {
@@ -287,16 +287,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void resetFilterButtons() {
-        btnCategoryMain.setBackgroundResource(R.drawable.category_button_bg);
-        btnCategoryMain.setTextColor(Color.parseColor("#333333"));
-        btnCategoryDessert.setBackgroundResource(R.drawable.category_button_bg);
-        btnCategoryDessert.setTextColor(Color.parseColor("#333333"));
-        btnCategoryFast.setBackgroundResource(R.drawable.category_button_bg);
-        btnCategoryFast.setTextColor(Color.parseColor("#333333"));
+        for (TextView button : categoryButtons) {
+            button.setBackgroundResource(R.drawable.category_button_bg);
+            button.setTextColor(Color.parseColor("#333333"));
+        }
     }
 
     private void setSelectedFilter(TextView selectedButton) {
-        resetFilterButtons();
         // You can customize the selected state background and color here
         // For now, just change text color to indicate selection
         selectedButton.setTextColor(Color.parseColor("#FF6B35")); // Orange color for selection

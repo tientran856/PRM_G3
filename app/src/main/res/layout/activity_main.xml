@@ -31,12 +31,7 @@
         <HorizontalScrollView android:id="@+id/categoryBar" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#FFFFFF" android:paddingVertical="8dp" android:scrollbars="none">
 
             <LinearLayout android:id="@+id/categoryContainer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="12dp">
-
-                <TextView android:id="@+id/btnCategoryMain" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:background="@drawable/category_button_bg" android:gravity="center" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:text="Món chính" android:textColor="#333333" android:textSize="13sp" android:clickable="true" android:focusable="true" />
-
-                <TextView android:id="@+id/btnCategoryDessert" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:background="@drawable/category_button_bg" android:gravity="center" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:text="Món tráng miệng" android:textColor="#333333" android:textSize="13sp" android:clickable="true" android:focusable="true" />
-
-                <TextView android:id="@+id/btnCategoryFast" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:background="@drawable/category_button_bg" android:gravity="center" android:paddingHorizontal="16dp" android:paddingVertical="8dp" android:text="Món ăn nhanh" android:textColor="#333333" android:textSize="13sp" android:clickable="true" android:focusable="true" />
+                <!-- Categories will be added dynamically here -->
             </LinearLayout>
         </HorizontalScrollView>
     </LinearLayout>
