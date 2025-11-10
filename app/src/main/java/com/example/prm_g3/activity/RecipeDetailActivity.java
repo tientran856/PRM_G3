@@ -346,8 +346,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
                     tvTime.setText(totalTime + " phút");
                 }
 
-                // Rating
-                tvRating.setText(String.format("%.1f (0 đánh giá)", recipe.rating));
+                // Rating - will be updated after loading comments
+                // Initial display, will be updated when comments are loaded
+                tvRating.setText(String.format("%.1f (0 đánh giá)", recipe.rating != 0 ? recipe.rating : 0.0));
 
                 // Servings (default if not in database)
                 tvServings.setText("4 người");
@@ -536,6 +537,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
                 if (commentId != null) {
                     recipeRef.child("comments").child(commentId).setValue(commentData)
                             .addOnSuccessListener(aVoid -> {
+                                // Recalculate and update average rating
+                                updateRecipeRating();
                                 Toast.makeText(RecipeDetailActivity.this, "Đã gửi đánh giá", Toast.LENGTH_SHORT).show();
                                 edtComment.setText("");
                                 setRating(0);
@@ -558,6 +561,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
                 if (commentId != null) {
                     recipeRef.child("comments").child(commentId).setValue(commentData)
                             .addOnSuccessListener(aVoid -> {
+                                // Recalculate and update average rating
+                                updateRecipeRating();
                                 Toast.makeText(RecipeDetailActivity.this, "Đã gửi đánh giá", Toast.LENGTH_SHORT).show();
                                 edtComment.setText("");
                                 setRating(0);
@@ -639,6 +644,42 @@ public class RecipeDetailActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void updateRecipeRating() {
+        // Recalculate average rating from all comments
+        recipeRef.child("comments").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                double totalRating = 0.0;
+                int commentCount = 0;
+
+                for (DataSnapshot commentSnapshot : snapshot.getChildren()) {
+                    Long rating = commentSnapshot.child("rating").getValue(Long.class);
+                    if (rating != null) {
+                        totalRating += rating.intValue();
+                        commentCount++;
+                    }
+                }
+
+                // Calculate average
+                double averageRating = commentCount > 0 ? totalRating / commentCount : 0.0;
+
+                // Update recipe rating in database
+                recipeRef.child("rating").setValue(averageRating)
+                        .addOnSuccessListener(aVoid -> {
+                            android.util.Log.d("RecipeDetailActivity", "Updated recipe rating to: " + averageRating);
+                        })
+                        .addOnFailureListener(e -> {
+                            android.util.Log.e("RecipeDetailActivity", "Error updating rating: " + e.getMessage());
+                        });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                android.util.Log.e("RecipeDetailActivity", "Error loading comments for rating: " + error.getMessage());
+            }
+        });
+    }
+
     private String formatTimeAgo(String createdAt) {
         if (createdAt == null || createdAt.isEmpty()) {
             return "Vừa xong";
@@ -681,6 +722,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
                 commentList.clear();
                 commentIdList.clear();
                 final int[] commentCount = { 0 }; // Use final array to make it effectively final
+                final double[] totalRating = { 0.0 }; // Sum of all ratings
 
                 for (DataSnapshot commentSnapshot : snapshot.getChildren()) {
                     String commentId = commentSnapshot.getKey();
@@ -701,6 +743,10 @@ public class RecipeDetailActivity extends AppCompatActivity {
                         comment.rating = rating.intValue();
                         comment.created_at = createdAt;
 
+                        // Add to total rating for average calculation
+                        totalRating[0] += rating.intValue();
+                        commentCount[0]++;
+
                         // Convert created_at to timestamp for proper sorting
                         try {
                             if (createdAt != null) {
@@ -717,25 +763,33 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
                         commentList.add(comment);
                         commentIdList.add(commentId);
-                        commentCount[0]++;
                     }
                 }
 
-                // Update rating display with comment count
-                recipeRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot recipeSnapshot) {
-                        Recipe recipe = recipeSnapshot.getValue(Recipe.class);
-                        if (recipe != null) {
-                            tvRating.setText(String.format("%.1f (%d đánh giá)", recipe.rating, commentCount[0]));
-                        }
-                    }
+                // Calculate average rating
+                double averageRating;
+                if (commentCount[0] > 0) {
+                    averageRating = totalRating[0] / commentCount[0];
+                } else {
+                    averageRating = 0.0;
+                }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        // Handle error if needed
-                    }
-                });
+                // Update recipe rating in database
+                final double finalAverageRating = averageRating;
+                recipeRef.child("rating").setValue(averageRating)
+                        .addOnSuccessListener(aVoid -> {
+                            android.util.Log.d("RecipeDetailActivity", "Updated recipe rating to: " + averageRating);
+                        })
+                        .addOnFailureListener(e -> {
+                            android.util.Log.e("RecipeDetailActivity", "Error updating rating: " + e.getMessage());
+                        });
+
+                // Update rating display with calculated average and comment count
+                if (commentCount[0] > 0) {
+                    tvRating.setText(String.format("%.1f (%d đánh giá)", finalAverageRating, commentCount[0]));
+                } else {
+                    tvRating.setText(String.format("0.0 (0 đánh giá)"));
+                }
 
                 commentAdapter.notifyDataSetChanged();
             }
