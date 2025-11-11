@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingHorizontal="16dp" android:paddingVertical="12dp" android:background="?android:attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+
+    <!-- Top row with title and time -->
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="4dp">
+
+        <!-- Title -->
+        <TextView android:id="@+id/tvTitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentStart="true" android:layout_centerVertical="true" android:text="Bình luận mới" android:textColor="#333333" android:textSize="15sp" android:textStyle="bold" />
+
+        <!-- Time -->
+        <TextView android:id="@+id/tvTime" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:text="2 giờ trước" android:textColor="#999999" android:textSize="12sp" />
+
+    </RelativeLayout>
+
+    <!-- Content -->
+    <TextView android:id="@+id/tvContent" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Người dùng đã bình luận vào công thức của bạn" android:textColor="#666666" android:textSize="14sp" />
+
+    <!-- Separator -->
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="12dp" android:background="#EEEEEE" />
+
+</LinearLayout>
+

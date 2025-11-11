@@ -2,15 +2,21 @@ package com.example.prm_g3.activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvGreeting;
     private LinearLayout searchBarLayout;
     private LinearLayout categoryContainer;
+    private ImageView btnNotifications;
     private DatabaseReference recipesRef;
     private String selectedCategory = null;
     private List<TextView> categoryButtons = new ArrayList<>();
@@ -69,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
         tvGreeting = findViewById(R.id.tvGreeting);
         categoryContainer = findViewById(R.id.categoryContainer);
         searchBarLayout = findViewById(R.id.searchBarLayout);
+        btnNotifications = findViewById(R.id.btnNotifications);
         recipeList = new ArrayList<>();
         popularRecipeList = new ArrayList<>();
         featuredRecipeIds = new ArrayList<>();
@@ -94,6 +102,45 @@ public class MainActivity extends AppCompatActivity {
 
         setupBottomNav();
         setupSearch();
+        setupNotificationsButton();
+
+        // Request notification permission for Android 13+
+        requestNotificationPermission();
+    }
+
+    private void setupNotificationsButton() {
+        btnNotifications.setOnClickListener(v -> {
+            // Mở NotificationsActivity để xem danh sách thông báo
+            Intent intent = new Intent(MainActivity.this, NotificationsActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                // Request permission
+                ActivityCompat.requestPermissions(this,
+                        new String[] { Manifest.permission.POST_NOTIFICATIONS },
+                        100);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+            @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 100) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("MainActivity", "Notification permission granted");
+            } else {
+                Log.d("MainActivity", "Notification permission denied");
+                Toast.makeText(this, "Bạn cần cấp quyền thông báo để nhận thông báo bình luận",
+                        Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     @Override

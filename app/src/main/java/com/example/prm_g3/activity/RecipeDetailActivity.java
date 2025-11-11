@@ -562,7 +562,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
                                             recipeId,
                                             recipeTitle,
                                             finalUserName,
-                                            comment);
+                                            comment,
+                                            currentAuthorId);
                                 }
 
                                 // Reload recipe to show new comment
@@ -597,7 +598,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
                                             recipeId,
                                             recipeTitle,
                                             "Người dùng",
-                                            comment);
+                                            comment,
+                                            currentAuthorId);
                                 }
 
                                 loadRecipeDetail();
@@ -881,7 +883,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
                                         recipeId,
                                         recipeTitle,
                                         commentUserName != null ? commentUserName : "Người dùng",
-                                        commentContent);
+                                        commentContent,
+                                        currentAuthorId);
                             }
                         } catch (Exception e) {
                             android.util.Log.e("RecipeDetailActivity", "Error parsing comment date: " + e.getMessage());

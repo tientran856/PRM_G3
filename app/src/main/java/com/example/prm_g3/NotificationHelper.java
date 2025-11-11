@@ -10,7 +10,11 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
+import com.example.prm_g3.R;
 import com.example.prm_g3.activity.RecipeDetailActivity;
+import com.example.prm_g3.models.Notification;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class NotificationHelper {
     private static final String CHANNEL_ID = "recipe_comments_channel";
@@ -32,10 +36,11 @@ public class NotificationHelper {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_DEFAULT);
+                    NotificationManager.IMPORTANCE_HIGH); // Tăng importance để đảm bảo hiển thị
             channel.setDescription(CHANNEL_DESCRIPTION);
             channel.enableVibration(true);
             channel.enableLights(true);
+            channel.setShowBadge(true); // Hiển thị badge trên icon app
 
             if (notificationManager != null) {
                 notificationManager.createNotificationChannel(channel);
@@ -45,7 +50,17 @@ public class NotificationHelper {
 
     public void showCommentNotification(String recipeId, String recipeTitle, String commenterName,
             String commentContent) {
+        showCommentNotification(recipeId, recipeTitle, commenterName, commentContent, null);
+    }
+
+    public void showCommentNotification(String recipeId, String recipeTitle, String commenterName,
+            String commentContent, String userId) {
         try {
+            // Lưu thông báo vào Firebase nếu có userId
+            if (userId != null && !userId.isEmpty()) {
+                saveNotificationToFirebase(userId, recipeId, recipeTitle, commenterName, commentContent);
+            }
+
             // Tạo Intent để mở RecipeDetailActivity khi click vào notification
             Intent intent = new Intent(context, RecipeDetailActivity.class);
             intent.putExtra("recipeId", recipeId);
@@ -59,7 +74,7 @@ public class NotificationHelper {
 
             // Tạo notification
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                    .setSmallIcon(android.R.drawable.ic_dialog_info)
+                    .setSmallIcon(R.drawable.ic_notification) // Dùng icon của app
                     .setContentTitle("Bình luận mới")
                     .setContentText(commenterName + " đã bình luận vào công thức: " + recipeTitle)
                     .setStyle(new NotificationCompat.BigTextStyle()
@@ -68,10 +83,11 @@ public class NotificationHelper {
                                             : commentContent)
                                     +
                                     "\" vào công thức \"" + recipeTitle + "\""))
-                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH) // Tăng priority
                     .setContentIntent(pendingIntent)
                     .setAutoCancel(true)
-                    .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE);
+                    .setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC); // Hiển thị trên lock screen
 
             // Hiển thị notification
             if (notificationManager != null) {
@@ -80,6 +96,28 @@ public class NotificationHelper {
             }
         } catch (Exception e) {
             Log.e("NotificationHelper", "Error showing notification: " + e.getMessage(), e);
+        }
+    }
+
+    private void saveNotificationToFirebase(String userId, String recipeId, String recipeTitle,
+            String commenterName, String commentContent) {
+        try {
+            DatabaseReference notificationsRef = FirebaseDatabase.getInstance().getReference("notifications");
+            Notification notification = new Notification(userId, recipeId, recipeTitle, commenterName, commentContent, "comment");
+            
+            String notificationId = notificationsRef.push().getKey();
+            if (notificationId != null) {
+                notification.id = notificationId;
+                notificationsRef.child(notificationId).setValue(notification)
+                        .addOnSuccessListener(aVoid -> {
+                            Log.d("NotificationHelper", "Notification saved to Firebase: " + notificationId);
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e("NotificationHelper", "Error saving notification to Firebase: " + e.getMessage(), e);
+                        });
+            }
+        } catch (Exception e) {
+            Log.e("NotificationHelper", "Error saving notification to Firebase: " + e.getMessage(), e);
         }
     }
 

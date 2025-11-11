@@ -31,6 +31,7 @@
         <activity android:name=".activity.ProfileActivity" />
         <activity android:name=".activity.EditProfileActivity" />
         <activity android:name=".activity.UserProfileActivity" />
+        <activity android:name=".activity.NotificationsActivity" />
 
     </application>
 
