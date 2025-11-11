@@ -556,6 +556,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
                                 setRating(0);
 
                                 // Gửi notification cho chủ sở hữu công thức (nếu không phải chính họ)
+                                // Chỉ gửi nếu: có authorId, authorId khác với người bình luận hiện tại
                                 if (currentAuthorId != null && !currentAuthorId.isEmpty() &&
                                         !currentAuthorId.equals(finalCurrentUserId)) {
                                     notificationHelper.showCommentNotification(
@@ -592,6 +593,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
                                 setRating(0);
 
                                 // Gửi notification cho chủ sở hữu công thức (nếu không phải chính họ)
+                                // Chỉ gửi nếu: có authorId, authorId khác với người bình luận hiện tại
                                 if (currentAuthorId != null && !currentAuthorId.isEmpty() &&
                                         !currentAuthorId.equals(finalCurrentUserId1)) {
                                     notificationHelper.showCommentNotification(
@@ -840,7 +842,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
     private void setupCommentsListener() {
         // Lắng nghe comments mới để gửi notification
-        // Chỉ gửi notification nếu comment không phải từ user hiện tại
+        // Chỉ gửi notification khi:
+        // - Người đang xem màn hình là chủ sở hữu công thức
+        // - Có người khác (không phải chủ sở hữu, không phải người đang xem) bình luận
         String currentUserId = UserManager.getInstance().getCurrentUserId();
         if (currentUserId == null) {
             currentUserId = "user_002";
@@ -870,13 +874,19 @@ public class RecipeDetailActivity extends AppCompatActivity {
                             java.util.Date commentDate = iso.parse(createdAt);
                             long diffInMillis = System.currentTimeMillis() - commentDate.getTime();
 
-                            // Nếu comment mới (trong vòng 5 giây) và user hiện tại là chủ sở hữu công thức
-                            // và comment không phải từ chính họ
+                            // Gửi notification nếu:
+                            // 1. Comment mới (trong vòng 5 giây)
+                            // 2. Có authorId hợp lệ
+                            // 3. Người đang xem màn hình là chủ sở hữu công thức
+                            // 4. Người bình luận KHÔNG phải là chủ sở hữu
+                            // 5. Người bình luận KHÔNG phải là người đang xem (tránh duplicate với
+                            // submitComment)
                             if (diffInMillis < 5000 &&
                                     currentAuthorId != null &&
                                     !currentAuthorId.isEmpty() &&
-                                    finalCurrentUserId.equals(currentAuthorId) && // User hiện tại là chủ sở hữu
-                                    !commentUserId.equals(currentAuthorId)) { // Comment không phải từ chính họ
+                                    finalCurrentUserId.equals(currentAuthorId) && // Người đang xem là chủ sở hữu
+                                    !commentUserId.equals(currentAuthorId) && // Comment không phải từ chủ sở hữu
+                                    !commentUserId.equals(finalCurrentUserId)) { // Comment không phải từ người đang xem
 
                                 // Gửi notification cho chủ sở hữu công thức
                                 notificationHelper.showCommentNotification(
