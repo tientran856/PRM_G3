@@ -21,9 +21,13 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.bumptech.glide.Glide;
 import android.util.Log;
 import java.io.InputStream;
 
@@ -44,6 +48,10 @@ public class CreateRecipeActivity extends AppCompatActivity {
     private Uri imageUri;
     private String imageUrlFromInput = null;
     private boolean useUrlMode = false;
+
+    // Edit mode variables
+    private boolean isEditMode = false;
+    private String editRecipeId = null;
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
@@ -77,6 +85,19 @@ public class CreateRecipeActivity extends AppCompatActivity {
         setupListeners();
         setupDifficultySpinner();
         setupCategorySpinner();
+
+        // Check if in edit mode
+        Intent intent = getIntent();
+        if (intent != null && intent.getBooleanExtra("editMode", false)) {
+            isEditMode = true;
+            editRecipeId = intent.getStringExtra("recipeId");
+            if (editRecipeId != null && !editRecipeId.isEmpty()) {
+                loadRecipeForEdit(editRecipeId);
+            } else {
+                Toast.makeText(this, "Không tìm thấy ID công thức để chỉnh sửa", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
     }
 
     private void setupStatusBar() {
@@ -317,10 +338,9 @@ public class CreateRecipeActivity extends AppCompatActivity {
             }
             // Use URL directly, no upload needed
             btnSave.setEnabled(false);
-            btnSave.setText("Đang lưu...");
+            btnSave.setText(isEditMode ? "Đang cập nhật..." : "Đang lưu...");
             uploadRecipeWithImage(url);
-            btnSave.setEnabled(true);
-            btnSave.setText("Lưu");
+            // Note: Button will be re-enabled in success/failure callbacks
             return;
         }
 
@@ -332,13 +352,13 @@ public class CreateRecipeActivity extends AppCompatActivity {
 
         // Show loading indicator
         btnSave.setEnabled(false);
-        btnSave.setText("Đang tải lên...");
+        btnSave.setText(isEditMode ? "Đang cập nhật..." : "Đang tải lên...");
 
         uploadImageToFirebase(imageUri,
                 downloadUrl -> {
                     uploadRecipeWithImage(downloadUrl);
                     btnSave.setEnabled(true);
-                    btnSave.setText("Lưu");
+                    btnSave.setText(isEditMode ? "Cập nhật" : "Lưu");
                 },
                 error -> {
                     String errorMessage = error.getMessage();
@@ -355,14 +375,14 @@ public class CreateRecipeActivity extends AppCompatActivity {
                             .setPositiveButton("Dùng URL", (dialog, which) -> {
                                 toggleImageInputMode();
                                 btnSave.setEnabled(true);
-                                btnSave.setText("Lưu");
+                                btnSave.setText(isEditMode ? "Cập nhật" : "Lưu");
                             })
                             .setNeutralButton("Thử lại", (dialog, which) -> {
                                 saveRecipe(); // Retry
                             })
                             .setNegativeButton("Hủy", (dialog, which) -> {
                                 btnSave.setEnabled(true);
-                                btnSave.setText("Lưu");
+                                btnSave.setText(isEditMode ? "Cập nhật" : "Lưu");
                             })
                             .show();
                 });
@@ -466,7 +486,15 @@ public class CreateRecipeActivity extends AppCompatActivity {
 
     private void uploadRecipeWithImage(String imageUrl) {
         DatabaseReference recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
-        String recipeId = recipesRef.push().getKey();
+        String recipeId;
+
+        if (isEditMode && editRecipeId != null) {
+            // Update existing recipe
+            recipeId = editRecipeId;
+        } else {
+            // Create new recipe
+            recipeId = recipesRef.push().getKey();
+        }
 
         Recipe recipe = new Recipe();
         recipe.title = edtTitle.getText().toString().trim();
@@ -474,47 +502,324 @@ public class CreateRecipeActivity extends AppCompatActivity {
         recipe.image_url = imageUrl;
         recipe.difficulty = spinnerDifficulty.getSelectedItem().toString();
         recipe.category = spinnerCategory.getSelectedItem().toString();
-        recipe.author_id = UserManager.getInstance().getCurrentUserId();
-        recipe.created_at = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).format(new Date());
-        recipe.updated_at = recipe.created_at;
-        recipe.prep_time = 30;
-        recipe.cook_time = 0;
-        recipe.servings = 2;
 
-        Map<String, Ingredient> ingMap = new HashMap<>();
-        int i = 1;
-        for (View view : ingredientViews) {
-            EditText n = view.findViewById(R.id.edtIngredientName);
-            EditText q = view.findViewById(R.id.edtIngredientQuantity);
-            if (!n.getText().toString().isEmpty() && !q.getText().toString().isEmpty()) {
-                Ingredient ing = new Ingredient();
-                ing.name = n.getText().toString();
-                ing.quantity = q.getText().toString();
-                ing.sync_status = 0;
-                ingMap.put("ing_" + String.format("%03d", i++), ing);
+        if (isEditMode) {
+            // Keep original author_id and created_at when editing
+            DatabaseReference recipeRef = recipesRef.child(recipeId);
+            recipeRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        Recipe existingRecipe = snapshot.getValue(Recipe.class);
+                        if (existingRecipe != null) {
+                            recipe.author_id = existingRecipe.author_id;
+                            recipe.created_at = existingRecipe.created_at;
+                        } else {
+                            recipe.author_id = UserManager.getInstance().getCurrentUserId();
+                            recipe.created_at = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                                    .format(new Date());
+                        }
+                    } else {
+                        recipe.author_id = UserManager.getInstance().getCurrentUserId();
+                        recipe.created_at = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                                .format(new Date());
+                    }
+                    recipe.updated_at = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                            .format(new Date());
+
+                    // Parse time and servings from input
+                    try {
+                        String timeStr = edtTime.getText().toString().trim();
+                        if (!timeStr.isEmpty()) {
+                            int totalTime = Integer.parseInt(timeStr);
+                            recipe.prep_time = totalTime;
+                            recipe.cook_time = 0;
+                        } else {
+                            recipe.prep_time = 30;
+                            recipe.cook_time = 0;
+                        }
+                    } catch (NumberFormatException e) {
+                        recipe.prep_time = 30;
+                        recipe.cook_time = 0;
+                    }
+
+                    try {
+                        String servingsStr = edtServings.getText().toString().trim();
+                        if (!servingsStr.isEmpty()) {
+                            recipe.servings = Integer.parseInt(servingsStr);
+                        } else {
+                            recipe.servings = 2;
+                        }
+                    } catch (NumberFormatException e) {
+                        recipe.servings = 2;
+                    }
+
+                    Map<String, Ingredient> ingMap = new HashMap<>();
+                    int i = 1;
+                    for (View view : ingredientViews) {
+                        EditText n = view.findViewById(R.id.edtIngredientName);
+                        EditText q = view.findViewById(R.id.edtIngredientQuantity);
+                        if (!n.getText().toString().isEmpty() && !q.getText().toString().isEmpty()) {
+                            Ingredient ing = new Ingredient();
+                            ing.name = n.getText().toString();
+                            ing.quantity = q.getText().toString();
+                            ing.sync_status = 0;
+                            ingMap.put("ing_" + String.format("%03d", i++), ing);
+                        }
+                    }
+                    recipe.ingredients = ingMap;
+
+                    Map<String, Step> stepMap = new HashMap<>();
+                    int s = 1;
+                    for (View view : stepViews) {
+                        EditText d = view.findViewById(R.id.edtStepDescription);
+                        if (!d.getText().toString().isEmpty()) {
+                            Step step = new Step();
+                            step.step_number = s;
+                            step.instruction = d.getText().toString();
+                            step.image_url = "";
+                            stepMap.put("step_" + String.format("%03d", s++), step);
+                        }
+                    }
+                    recipe.steps = stepMap;
+
+                    recipesRef.child(recipeId).setValue(recipe)
+                            .addOnSuccessListener(a -> {
+                                Toast.makeText(CreateRecipeActivity.this,
+                                        isEditMode ? "Đã cập nhật công thức thành công" : "Đã lưu công thức thành công",
+                                        Toast.LENGTH_SHORT).show();
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                btnSave.setEnabled(true);
+                                btnSave.setText(isEditMode ? "Cập nhật" : "Lưu");
+                                Toast.makeText(CreateRecipeActivity.this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT)
+                                        .show();
+                            });
+                }
+
+                @Override
+                public void onCancelled(DatabaseError error) {
+                    btnSave.setEnabled(true);
+                    btnSave.setText(isEditMode ? "Cập nhật" : "Lưu");
+                    Toast.makeText(CreateRecipeActivity.this, "Lỗi tải dữ liệu: " + error.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // Create new recipe
+            recipe.author_id = UserManager.getInstance().getCurrentUserId();
+            recipe.created_at = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                    .format(new Date());
+            recipe.updated_at = recipe.created_at;
+
+            // Parse time and servings from input
+            try {
+                String timeStr = edtTime.getText().toString().trim();
+                if (!timeStr.isEmpty()) {
+                    int totalTime = Integer.parseInt(timeStr);
+                    recipe.prep_time = totalTime;
+                    recipe.cook_time = 0;
+                } else {
+                    recipe.prep_time = 30;
+                    recipe.cook_time = 0;
+                }
+            } catch (NumberFormatException e) {
+                recipe.prep_time = 30;
+                recipe.cook_time = 0;
             }
-        }
-        recipe.ingredients = ingMap;
 
-        Map<String, Step> stepMap = new HashMap<>();
-        int s = 1;
-        for (View view : stepViews) {
-            EditText d = view.findViewById(R.id.edtStepDescription);
-            if (!d.getText().toString().isEmpty()) {
-                Step step = new Step();
-                step.step_number = s;
-                step.instruction = d.getText().toString();
-                step.image_url = "";
-                stepMap.put("step_" + String.format("%03d", s++), step);
+            try {
+                String servingsStr = edtServings.getText().toString().trim();
+                if (!servingsStr.isEmpty()) {
+                    recipe.servings = Integer.parseInt(servingsStr);
+                } else {
+                    recipe.servings = 2;
+                }
+            } catch (NumberFormatException e) {
+                recipe.servings = 2;
             }
-        }
-        recipe.steps = stepMap;
 
-        recipesRef.child(recipeId).setValue(recipe)
-                .addOnSuccessListener(a -> {
-                    Toast.makeText(this, "Đã lưu công thức thành công", Toast.LENGTH_SHORT).show();
+            Map<String, Ingredient> ingMap = new HashMap<>();
+            int i = 1;
+            for (View view : ingredientViews) {
+                EditText n = view.findViewById(R.id.edtIngredientName);
+                EditText q = view.findViewById(R.id.edtIngredientQuantity);
+                if (!n.getText().toString().isEmpty() && !q.getText().toString().isEmpty()) {
+                    Ingredient ing = new Ingredient();
+                    ing.name = n.getText().toString();
+                    ing.quantity = q.getText().toString();
+                    ing.sync_status = 0;
+                    ingMap.put("ing_" + String.format("%03d", i++), ing);
+                }
+            }
+            recipe.ingredients = ingMap;
+
+            Map<String, Step> stepMap = new HashMap<>();
+            int s = 1;
+            for (View view : stepViews) {
+                EditText d = view.findViewById(R.id.edtStepDescription);
+                if (!d.getText().toString().isEmpty()) {
+                    Step step = new Step();
+                    step.step_number = s;
+                    step.instruction = d.getText().toString();
+                    step.image_url = "";
+                    stepMap.put("step_" + String.format("%03d", s++), step);
+                }
+            }
+            recipe.steps = stepMap;
+
+            recipesRef.child(recipeId).setValue(recipe)
+                    .addOnSuccessListener(a -> {
+                        Toast.makeText(this, "Đã lưu công thức thành công", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        btnSave.setEnabled(true);
+                        btnSave.setText("Lưu");
+                        Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        }
+    }
+
+    private void loadRecipeForEdit(String recipeId) {
+        DatabaseReference recipeRef = FirebaseDatabase.getInstance().getReference("recipes").child(recipeId);
+        recipeRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (!snapshot.exists()) {
+                    Toast.makeText(CreateRecipeActivity.this, "Không tìm thấy công thức", Toast.LENGTH_SHORT).show();
                     finish();
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    return;
+                }
+
+                Recipe recipe = snapshot.getValue(Recipe.class);
+                if (recipe == null) {
+                    Toast.makeText(CreateRecipeActivity.this, "Lỗi đọc dữ liệu công thức", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+
+                // Populate title and description
+                edtTitle.setText(recipe.title);
+                edtDescription.setText(recipe.description);
+
+                // Populate time and servings
+                int totalTime = recipe.prep_time + recipe.cook_time;
+                edtTime.setText(String.valueOf(totalTime));
+                edtServings.setText(String.valueOf(recipe.servings));
+
+                // Set difficulty spinner
+                String[] difficulties = { "Dễ", "Trung bình", "Khó" };
+                for (int i = 0; i < difficulties.length; i++) {
+                    if (difficulties[i].equals(recipe.difficulty)) {
+                        spinnerDifficulty.setSelection(i);
+                        break;
+                    }
+                }
+
+                // Set category spinner
+                String[] categories = {
+                        "Món Á", "Món chính", "Món phụ", "Món khai vị", "Món tráng miệng",
+                        "Món chay", "Món nhanh", "Truyền thống", "Món Âu", "Món Nhật",
+                        "Món Hàn", "Món Trung", "Món Thái", "Món Việt", "Đồ uống",
+                        "Bánh ngọt", "Khác"
+                };
+                for (int i = 0; i < categories.length; i++) {
+                    if (categories[i].equals(recipe.category)) {
+                        spinnerCategory.setSelection(i);
+                        break;
+                    }
+                }
+
+                // Load image
+                if (recipe.image_url != null && !recipe.image_url.isEmpty()) {
+                    useUrlMode = true;
+                    btnUseUrl.setText("Chọn ảnh");
+                    edtImageUrl.setVisibility(View.VISIBLE);
+                    edtImageUrl.setText(recipe.image_url);
+                    containerImageUpload.setClickable(false);
+                    containerImageUpload.setAlpha(0.5f);
+                    imageUrlFromInput = recipe.image_url;
+                    Glide.with(CreateRecipeActivity.this)
+                            .load(recipe.image_url)
+                            .placeholder(android.R.drawable.ic_menu_gallery)
+                            .error(android.R.drawable.ic_menu_report_image)
+                            .into(imgRecipe);
+                    imgRecipe.setVisibility(View.VISIBLE);
+                }
+
+                // Load ingredients
+                containerIngredients.removeAllViews();
+                ingredientViews.clear();
+                DataSnapshot ingredientsSnap = snapshot.child("ingredients");
+                for (DataSnapshot item : ingredientsSnap.getChildren()) {
+                    String name = item.child("name").getValue(String.class);
+                    String quantity = item.child("quantity").getValue(String.class);
+                    if (name != null && quantity != null) {
+                        View row = getLayoutInflater().inflate(R.layout.item_ingredient_input, containerIngredients,
+                                false);
+                        EditText edtName = row.findViewById(R.id.edtIngredientName);
+                        EditText edtQty = row.findViewById(R.id.edtIngredientQuantity);
+                        edtName.setText(name);
+                        edtQty.setText(quantity);
+
+                        ImageButton btnRemove = row.findViewById(R.id.btnRemoveIngredient);
+                        btnRemove.setOnClickListener(v -> {
+                            containerIngredients.removeView(row);
+                            ingredientViews.remove(row);
+                        });
+
+                        containerIngredients.addView(row);
+                        ingredientViews.add(row);
+                    }
+                }
+
+                // Load steps
+                containerSteps.removeAllViews();
+                stepViews.clear();
+                DataSnapshot stepsSnap = snapshot.child("steps");
+                List<Step> stepsList = new ArrayList<>();
+                for (DataSnapshot stepSnap : stepsSnap.getChildren()) {
+                    Step step = stepSnap.getValue(Step.class);
+                    if (step != null) {
+                        stepsList.add(step);
+                    }
+                }
+
+                // Sort steps by step_number
+                stepsList.sort((s1, s2) -> Integer.compare(s1.step_number, s2.step_number));
+
+                for (Step step : stepsList) {
+                    View row = getLayoutInflater().inflate(R.layout.item_step_input, containerSteps, false);
+                    TextView tvStepNumber = row.findViewById(R.id.tvStepNumber);
+                    EditText edtStepDescription = row.findViewById(R.id.edtStepDescription);
+
+                    tvStepNumber.setText(String.valueOf(step.step_number));
+                    edtStepDescription.setText(step.instruction);
+                    edtStepDescription.setHint("Bước " + step.step_number);
+
+                    ImageButton btnRemove = row.findViewById(R.id.btnRemoveStep);
+                    btnRemove.setOnClickListener(v -> {
+                        containerSteps.removeView(row);
+                        stepViews.remove(row);
+                        updateStepNumbers();
+                    });
+
+                    containerSteps.addView(row);
+                    stepViews.add(row);
+                }
+
+                // Update button text
+                btnSave.setText("Cập nhật");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Toast.makeText(CreateRecipeActivity.this, "Lỗi tải dữ liệu: " + error.getMessage(), Toast.LENGTH_SHORT)
+                        .show();
+                finish();
+            }
+        });
     }
 }
