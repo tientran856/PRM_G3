@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.prm_g3.FavoritesManager;
+import com.example.prm_g3.NotificationHelper;
 import com.example.prm_g3.R;
 import com.example.prm_g3.RecipesListActivity;
 import com.example.prm_g3.ShareRecipeDialog;
@@ -62,6 +63,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
     private DatabaseReference recipeRef;
     private String recipeId;
     private FavoritesManager favoritesManager;
+    private NotificationHelper notificationHelper;
+    private String recipeTitle = ""; // Lưu tên công thức để dùng trong notification
+    private ValueEventListener commentsListener; // Listener để lắng nghe comments mới
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,6 +171,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
         recipeRef = FirebaseDatabase.getInstance().getReference("recipes").child(recipeId);
         favoritesManager = new FavoritesManager(this);
+        notificationHelper = new NotificationHelper(this);
 
         // Initialize RecyclerView for comments
         recyclerComments = findViewById(R.id.recyclerComments);
@@ -326,6 +331,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
                 // Set basic info
                 tvTitle.setText(recipe.title);
+                recipeTitle = recipe.title; // Lưu tên công thức để dùng trong notification
                 tvDescription.setText(recipe.description);
                 tvDifficulty.setText(recipe.difficulty);
 
@@ -493,6 +499,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
                 // Load comments using RecyclerView
                 loadComments();
 
+                // Setup listener để lắng nghe comments mới
+                setupCommentsListener();
+
                 // Switch to ingredients tab by default
                 switchTab(0);
             }
@@ -523,6 +532,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
         // Get user name from users table
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users").child(currentUserId);
+        String finalCurrentUserId = currentUserId;
+        String finalCurrentUserId1 = currentUserId;
         usersRef.child("name").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -535,6 +546,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
                 // Save comment to Firebase
                 String commentId = recipeRef.child("comments").push().getKey();
                 if (commentId != null) {
+                    String finalUserName = userName;
                     recipeRef.child("comments").child(commentId).setValue(commentData)
                             .addOnSuccessListener(aVoid -> {
                                 // Recalculate and update average rating
@@ -542,6 +554,17 @@ public class RecipeDetailActivity extends AppCompatActivity {
                                 Toast.makeText(RecipeDetailActivity.this, "Đã gửi đánh giá", Toast.LENGTH_SHORT).show();
                                 edtComment.setText("");
                                 setRating(0);
+
+                                // Gửi notification cho chủ sở hữu công thức (nếu không phải chính họ)
+                                if (currentAuthorId != null && !currentAuthorId.isEmpty() &&
+                                        !currentAuthorId.equals(finalCurrentUserId)) {
+                                    notificationHelper.showCommentNotification(
+                                            recipeId,
+                                            recipeTitle,
+                                            finalUserName,
+                                            comment);
+                                }
+
                                 // Reload recipe to show new comment
                                 loadRecipeDetail();
                             })
@@ -566,6 +589,17 @@ public class RecipeDetailActivity extends AppCompatActivity {
                                 Toast.makeText(RecipeDetailActivity.this, "Đã gửi đánh giá", Toast.LENGTH_SHORT).show();
                                 edtComment.setText("");
                                 setRating(0);
+
+                                // Gửi notification cho chủ sở hữu công thức (nếu không phải chính họ)
+                                if (currentAuthorId != null && !currentAuthorId.isEmpty() &&
+                                        !currentAuthorId.equals(finalCurrentUserId1)) {
+                                    notificationHelper.showCommentNotification(
+                                            recipeId,
+                                            recipeTitle,
+                                            "Người dùng",
+                                            comment);
+                                }
+
                                 loadRecipeDetail();
                             })
                             .addOnFailureListener(e -> {
@@ -800,5 +834,78 @@ public class RecipeDetailActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void setupCommentsListener() {
+        // Lắng nghe comments mới để gửi notification
+        // Chỉ gửi notification nếu comment không phải từ user hiện tại
+        String currentUserId = UserManager.getInstance().getCurrentUserId();
+        if (currentUserId == null) {
+            currentUserId = "user_002";
+        }
+        final String finalCurrentUserId = currentUserId;
+
+        commentsListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                // Lấy comment mới nhất
+                DataSnapshot lastComment = null;
+                for (DataSnapshot commentSnap : snapshot.getChildren()) {
+                    lastComment = commentSnap;
+                }
+
+                if (lastComment != null) {
+                    String commentUserId = lastComment.child("user_id").getValue(String.class);
+                    String commentUserName = lastComment.child("user_name").getValue(String.class);
+                    String commentContent = lastComment.child("content").getValue(String.class);
+                    String createdAt = lastComment.child("created_at").getValue(String.class);
+
+                    // Kiểm tra xem comment có phải mới không (trong vòng 5 giây)
+                    if (commentUserId != null && commentContent != null && createdAt != null) {
+                        try {
+                            java.text.SimpleDateFormat iso = new java.text.SimpleDateFormat(
+                                    "yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault());
+                            java.util.Date commentDate = iso.parse(createdAt);
+                            long diffInMillis = System.currentTimeMillis() - commentDate.getTime();
+
+                            // Nếu comment mới (trong vòng 5 giây) và user hiện tại là chủ sở hữu công thức
+                            // và comment không phải từ chính họ
+                            if (diffInMillis < 5000 &&
+                                    currentAuthorId != null &&
+                                    !currentAuthorId.isEmpty() &&
+                                    finalCurrentUserId.equals(currentAuthorId) && // User hiện tại là chủ sở hữu
+                                    !commentUserId.equals(currentAuthorId)) { // Comment không phải từ chính họ
+
+                                // Gửi notification cho chủ sở hữu công thức
+                                notificationHelper.showCommentNotification(
+                                        recipeId,
+                                        recipeTitle,
+                                        commentUserName != null ? commentUserName : "Người dùng",
+                                        commentContent);
+                            }
+                        } catch (Exception e) {
+                            android.util.Log.e("RecipeDetailActivity", "Error parsing comment date: " + e.getMessage());
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                android.util.Log.e("RecipeDetailActivity", "Error listening to comments: " + error.getMessage());
+            }
+        };
+
+        // Lắng nghe comments với limit để chỉ lấy comment mới nhất
+        recipeRef.child("comments").limitToLast(1).addValueEventListener(commentsListener);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Remove listener khi activity bị destroy
+        if (commentsListener != null && recipeRef != null) {
+            recipeRef.child("comments").removeEventListener(commentsListener);
+        }
     }
 }
