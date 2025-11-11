@@ -557,14 +557,21 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
                                 // Gửi notification cho chủ sở hữu công thức (nếu không phải chính họ)
                                 // Chỉ gửi nếu: có authorId, authorId khác với người bình luận hiện tại
+                                android.util.Log.d("RecipeDetailActivity", "Checking notification: currentAuthorId="
+                                        + currentAuthorId + ", finalCurrentUserId=" + finalCurrentUserId);
                                 if (currentAuthorId != null && !currentAuthorId.isEmpty() &&
                                         !currentAuthorId.equals(finalCurrentUserId)) {
+                                    android.util.Log.d("RecipeDetailActivity",
+                                            "Sending notification to author: " + currentAuthorId);
                                     notificationHelper.showCommentNotification(
                                             recipeId,
                                             recipeTitle,
                                             finalUserName,
                                             comment,
                                             currentAuthorId);
+                                } else {
+                                    android.util.Log.d("RecipeDetailActivity",
+                                            "Skipping notification: author is same as commenter or authorId is null");
                                 }
 
                                 // Reload recipe to show new comment
@@ -594,14 +601,22 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
                                 // Gửi notification cho chủ sở hữu công thức (nếu không phải chính họ)
                                 // Chỉ gửi nếu: có authorId, authorId khác với người bình luận hiện tại
+                                android.util.Log.d("RecipeDetailActivity",
+                                        "Checking notification (fallback): currentAuthorId=" + currentAuthorId
+                                                + ", finalCurrentUserId1=" + finalCurrentUserId1);
                                 if (currentAuthorId != null && !currentAuthorId.isEmpty() &&
                                         !currentAuthorId.equals(finalCurrentUserId1)) {
+                                    android.util.Log.d("RecipeDetailActivity",
+                                            "Sending notification to author (fallback): " + currentAuthorId);
                                     notificationHelper.showCommentNotification(
                                             recipeId,
                                             recipeTitle,
                                             "Người dùng",
                                             comment,
                                             currentAuthorId);
+                                } else {
+                                    android.util.Log.d("RecipeDetailActivity",
+                                            "Skipping notification (fallback): author is same as commenter or authorId is null");
                                 }
 
                                 loadRecipeDetail();

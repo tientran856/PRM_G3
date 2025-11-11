@@ -29,6 +29,8 @@ import com.example.prm_g3.adapters.RecipeAdapter;
 import com.example.prm_g3.adapters.RecipeGridAdapter;
 import com.example.prm_g3.models.Recipe;
 import com.example.prm_g3.models.User;
+import com.example.prm_g3.NotificationHelper;
+import com.example.prm_g3.models.Notification;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth; // THÊM DÒNG NÀY
 import com.google.firebase.database.*;
@@ -58,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference recipesRef;
     private String selectedCategory = null;
     private List<TextView> categoryButtons = new ArrayList<>();
+    private NotificationHelper notificationHelper;
+    private DatabaseReference notificationsRef;
+    private ValueEventListener notificationsListener;
+    private long lastNotificationTimestamp = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +112,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Request notification permission for Android 13+
         requestNotificationPermission();
+
+        // Setup notification listener
+        setupNotificationListener();
     }
 
     private void setupNotificationsButton() {
@@ -435,6 +444,86 @@ public class MainActivity extends AppCompatActivity {
         }
 
         tvGreeting.setText(greeting);
+    }
+
+    private void setupNotificationListener() {
+        String currentUserId = UserManager.getInstance().getCurrentUserId();
+        if (currentUserId == null) {
+            currentUserId = "user_002";
+        }
+        final String finalCurrentUserId = currentUserId;
+
+        notificationHelper = new NotificationHelper(this);
+        notificationsRef = FirebaseDatabase.getInstance().getReference("notifications");
+
+        // Lắng nghe notifications mới cho user hiện tại, sắp xếp theo timestamp giảm
+        // dần
+        Query query = notificationsRef.orderByChild("userId").equalTo(finalCurrentUserId);
+
+        notificationsListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long currentTime = System.currentTimeMillis();
+                long maxTimestamp = lastNotificationTimestamp;
+
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    try {
+                        Notification notification = data.getValue(Notification.class);
+                        if (notification != null && notification.id != null) {
+                            // Chỉ xử lý notification mới (timestamp > lastNotificationTimestamp)
+                            // và là notification mới (trong vòng 30 giây)
+                            if (notification.timestamp > lastNotificationTimestamp &&
+                                    !notification.isRead &&
+                                    (currentTime - notification.timestamp) < 30000) {
+
+                                Log.d("MainActivity", "New notification detected: " + notification.id +
+                                        ", timestamp: " + notification.timestamp);
+
+                                // Hiển thị notification popup
+                                notificationHelper.showCommentNotification(
+                                        notification.recipeId,
+                                        notification.recipeTitle,
+                                        notification.commenterName,
+                                        notification.commentContent,
+                                        notification.userId);
+
+                                // Cập nhật maxTimestamp để không hiển thị lại notification này
+                                if (notification.timestamp > maxTimestamp) {
+                                    maxTimestamp = notification.timestamp;
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e("MainActivity", "Error parsing notification: " + e.getMessage(), e);
+                    }
+                }
+
+                // Cập nhật lastNotificationTimestamp sau khi xử lý tất cả notifications
+                if (maxTimestamp > lastNotificationTimestamp) {
+                    lastNotificationTimestamp = maxTimestamp;
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("MainActivity", "Error listening to notifications: " + error.getMessage());
+            }
+        };
+
+        query.addValueEventListener(notificationsListener);
+
+        // Khởi tạo lastNotificationTimestamp với thời gian hiện tại để tránh hiển thị
+        // notifications cũ
+        lastNotificationTimestamp = System.currentTimeMillis();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Remove notification listener
+        if (notificationsListener != null && notificationsRef != null) {
+            notificationsRef.removeEventListener(notificationsListener);
+        }
     }
 
     // Helper class to keep recipe and ID together during sorting
